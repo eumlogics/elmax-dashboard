@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>엘맥스텍 행정업무 대시보드</title>
+    <title>ìë§¥ì¤í íì ìë¬´ ëìë³´ë</title>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/react/18.2.0/umd/react.production.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/react-dom/18.2.0/umd/react-dom.production.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/babel-standalone/7.23.9/babel.min.js"></script>
@@ -172,7 +172,7 @@ const { useState, useEffect, useRef, useCallback, useMemo } = React;
 
 // ==================== UTILITIES ====================
 function fmt(n) { return n != null ? Number(n).toLocaleString('ko-KR') : '0'; }
-function fmtW(n) { return fmt(n) + '원'; }
+function fmtW(n) { return fmt(n) + 'ì'; }
 function fmtDate(d) { if(!d) return '-'; if(d instanceof Date) return d.toISOString().slice(0,10); return String(d).slice(0,10); }
 function genId(d) { d.nextId = (d.nextId||1000)+1; return d.nextId; }
 function StatIcon({bg, color, icon}) { return React.createElement('div', {className:'icon', style:{background:bg, color:color}}, React.createElement('i', {className:'fas '+icon})); }
@@ -198,19 +198,19 @@ function parseXlsx(file) {
 
 // Smart column mapping
 const ORDER_COLUMN_MAP = {
-    '발주일': 'orderDate', '발주일자': 'orderDate',
-    '납입기한': 'dueDate', '납기일': 'dueDate', '납기': 'dueDate',
-    '출하일': 'shipDate', '출하일자': 'shipDate',
-    '업체명': 'client', '거래처': 'client', '거래처명': 'client', '고객사': 'client',
-    '발주번호': 'orderNo', 'PO번호': 'orderNo',
-    '업체 품명': 'clientProduct', '업체품명': 'clientProduct',
-    '엘멕스텍 품명': 'product', '품명': 'product', '제품명': 'product', '엘맥스텍 품명': 'product', '엘멜스텍 품명': 'product',
-    '발주수량': 'qty', '수량': 'qty',
-    '로트번호': 'lotNo', '로트': 'lotNo', 'LOT': 'lotNo',
-    '세금계산서 발행일자': 'invoiceDate', '세금계산서': 'invoiceDate',
-    '비고': 'notes', '메모': 'notes',
-    '단가': 'unitPrice', '단가(원)': 'unitPrice',
-    '금액': 'amount', '합계금액': 'amount',
+    'ë°ì£¼ì¼': 'orderDate', 'ë°ì£¼ì¼ì': 'orderDate',
+    'ë©ìê¸°í': 'dueDate', 'ë©ê¸°ì¼': 'dueDate', 'ë©ê¸°': 'dueDate',
+    'ì¶íì¼': 'shipDate', 'ì¶íì¼ì': 'shipDate',
+    'ìì²´ëª': 'client', 'ê±°ëì²': 'client', 'ê±°ëì²ëª': 'client', 'ê³ ê°ì¬': 'client',
+    'ë°ì£¼ë²í¸': 'orderNo', 'POë²í¸': 'orderNo',
+    'ìì²´ íëª': 'clientProduct', 'ìì²´íëª': 'clientProduct',
+    'ìë©ì¤í íëª': 'product', 'íëª': 'product', 'ì íëª': 'product', 'ìë§¥ì¤í íëª': 'product', 'ìë©ì¤í íëª': 'product',
+    'ë°ì£¼ìë': 'qty', 'ìë': 'qty',
+    'ë¡í¸ë²í¸': 'lotNo', 'ë¡í¸': 'lotNo', 'LOT': 'lotNo',
+    'ì¸ê¸ê³ì°ì ë°íì¼ì': 'invoiceDate', 'ì¸ê¸ê³ì°ì': 'invoiceDate',
+    'ë¹ê³ ': 'notes', 'ë©ëª¨': 'notes',
+    'ë¨ê°': 'unitPrice', 'ë¨ê°(ì)': 'unitPrice',
+    'ê¸ì¡': 'amount', 'í©ê³ê¸ì¡': 'amount',
 };
 
 function autoMapColumns(headers) {
@@ -234,20 +234,20 @@ function autoMapColumns(headers) {
 
 // ==================== BANK TRANSACTION CATEGORIZER ====================
 const BANK_CATEGORIES = {
-    '거래처입금': { color:'#0e9f6e', icon:'fa-building', keywords:[ '푸른기술', '에이텍', '에니텍시스', '미도리야', '와이즈', '캐논코리아', '케이더블유트레', '케이스타컴' ] },
-    '자재/부품비': { color:'#e3a008', icon:'fa-cogs', keywords:[ '금영테크', '선진분말야금', '제이아이텍', '신일테크', '스마트에프앙에스', '우리종합상사', '신대성스프링', '한라스프링', '캐논스프링', '금형대금', '샤프트금형' ] },
-    '외주/용역비': { color:'#7c3aed', icon:'fa-handshake', keywords:[ '이음로직스', '와이즈브러쉬' ] },
-    '인건비(급여)': { color:'#1a56db', icon:'fa-users', keywords:[ '김중수급여', '이진급여', '현복자급여', '김중수', '이진', '현복자', '임유정' ] },
-    '인건비(아르바이트)': { color:'#6366f1', icon:'fa-user-clock', keywords:[ '김성중', '황용운', '김영일', '알바' ] },
-    '4대보험': { color:'#db2777', icon:'fa-shield-halved', keywords:[ '국민연금', '국민건강', '고용보험', '산재보험' ] },
-    '세무/법무': { color:'#0891b2', icon:'fa-balance-scale', keywords:[ '김순근세무', '노옥현', '법무사' ] },
-    '관리비/임대': { color:'#ea580c', icon:'fa-building-user', keywords:[ '604호', '402호', '412호', '관리비', '중계수수료', '계약금', '유리공사' ] },
-    '대출/금융': { color:'#64748b', icon:'fa-university', keywords:[ '기업회전대출', '대출금상환', '이음로직스대출', '이음로직스대여', '대여금상환', '이자-' ] },
-    '세금/공과금': { color:'#be123c', icon:'fa-receipt', keywords:[ '국세_', '국세조회', '지방세', '등록면허세', '관세납부', '특허등록비' ] },
-    '통신/IT': { color:'#0d9488', icon:'fa-wifi', keywords:[ 'SKB', '웹케시경리나라' ] },
-    '기타경비': { color:'#78716c', icon:'fa-ellipsis', keywords:[ '비씨카드', 'SMS통지', '에어컨', '전등교체', '법인차량과태료' ] },
-    '지원금/환급': { color:'#16a34a', icon:'fa-hand-holding-dollar', keywords:[ '고용부일가정양', '환급', '2026년결산' ] },
-    '개인입금': { color:'#a855f7', icon:'fa-user', keywords:[ '김화준', '류대수', '김경우' ] },
+    'ê±°ëì²ìê¸': { color:'#0e9f6e', icon:'fa-building', keywords:[ 'í¸ë¥¸ê¸°ì ', 'ìì´í', 'ìëíìì¤', 'ë¯¸ëë¦¬ì¼', 'ìì´ì¦', 'ìºë¼ì½ë¦¬ì', 'ì¼ì´ëë¸ì í¸ë ', 'ì¼ì´ì¤íì»´' ] },
+    'ìì¬/ë¶íë¹': { color:'#e3a008', icon:'fa-cogs', keywords:[ 'ê¸ìíí¬', 'ì ì§ë¶ë§ì¼ê¸', 'ì ì´ìì´í', 'ì ì¼íí¬', 'ì¤ë§í¸ìíììì¤', 'ì°ë¦¬ì¢í©ìì¬', 'ì ëì±ì¤íë§', 'íë¼ì¤íë§', 'ìºë¼ì¤íë§', 'ê¸íëê¸', 'ì¤íí¸ê¸í' ] },
+    'ì¸ì£¼/ì©ì­ë¹': { color:'#7c3aed', icon:'fa-handshake', keywords:[ 'ì´ìë¡ì§ì¤', 'ìì´ì¦ë¸ë¬ì¬' ] },
+    'ì¸ê±´ë¹(ê¸ì¬)': { color:'#1a56db', icon:'fa-users', keywords:[ 'ê¹ì¤ìê¸ì¬', 'ì´ì§ê¸ì¬', 'íë³µìê¸ì¬', 'ê¹ì¤ì', 'ì´ì§', 'íë³µì', 'ìì ì ' ] },
+    'ì¸ê±´ë¹(ìë¥´ë°ì´í¸)': { color:'#6366f1', icon:'fa-user-clock', keywords:[ 'ê¹ì±ì¤', 'í©ì©ì´', 'ê¹ìì¼', 'ìë°' ] },
+    '4ëë³´í': { color:'#db2777', icon:'fa-shield-halved', keywords:[ 'êµ­ë¯¼ì°ê¸', 'êµ­ë¯¼ê±´ê°', 'ê³ ì©ë³´í', 'ì°ì¬ë³´í' ] },
+    'ì¸ë¬´/ë²ë¬´': { color:'#0891b2', icon:'fa-balance-scale', keywords:[ 'ê¹ìê·¼ì¸ë¬´', 'ë¸ì¥í', 'ë²ë¬´ì¬' ] },
+    'ê´ë¦¬ë¹/ìë': { color:'#ea580c', icon:'fa-building-user', keywords:[ '604í¸', '402í¸', '412í¸', 'ê´ë¦¬ë¹', 'ì¤ê³ììë£', 'ê³ì½ê¸', 'ì ë¦¬ê³µì¬' ] },
+    'ëì¶/ê¸ìµ': { color:'#64748b', icon:'fa-university', keywords:[ 'ê¸°ìíì ëì¶', 'ëì¶ê¸ìí', 'ì´ìë¡ì§ì¤ëì¶', 'ì´ìë¡ì§ì¤ëì¬', 'ëì¬ê¸ìí', 'ì´ì-' ] },
+    'ì¸ê¸/ê³µê³¼ê¸': { color:'#be123c', icon:'fa-receipt', keywords:[ 'êµ­ì¸_', 'êµ­ì¸ì¡°í', 'ì§ë°©ì¸', 'ë±ë¡ë©´íì¸', 'ê´ì¸ë©ë¶', 'í¹íë±ë¡ë¹' ] },
+    'íµì /IT': { color:'#0d9488', icon:'fa-wifi', keywords:[ 'SKB', 'ì¹ì¼ìê²½ë¦¬ëë¼' ] },
+    'ê¸°íê²½ë¹': { color:'#78716c', icon:'fa-ellipsis', keywords:[ 'ë¹ì¨ì¹´ë', 'SMSíµì§', 'ìì´ì»¨', 'ì ë±êµì²´', 'ë²ì¸ì°¨ëê³¼íë£' ] },
+    'ì§ìê¸/íê¸': { color:'#16a34a', icon:'fa-hand-holding-dollar', keywords:[ 'ê³ ì©ë¶ì¼ê°ì ì', 'íê¸', '2026ëê²°ì°' ] },
+    'ê°ì¸ìê¸': { color:'#a855f7', icon:'fa-user', keywords:[ 'ê¹íì¤', 'ë¥ëì', 'ê¹ê²½ì°' ] },
 };
 
 function categorizeTransaction(desc) {
@@ -257,19 +257,33 @@ function categorizeTransaction(desc) {
             if(d.includes(kw)) return cat;
         }
     }
-    if(d.includes('이음로직스') && !d.includes('대출') && !d.includes('대여')) return '외주/용역비';
-    return '기타경비';
+    if(d.includes('ì´ìë¡ì§ì¤') && !d.includes('ëì¶') && !d.includes('ëì¬')) return 'ì¸ì£¼/ì©ì­ë¹';
+    return 'ê¸°íê²½ë¹';
 }
 
 // ==================== USER MANAGEMENT ====================
-const USERS = {
+const DEFAULT_USERS = {
     'kimjs': { name: '김중수 (대표)', role: 'admin', password: '1234' },
     'kimkt': { name: '김국태 (이사)', role: 'admin', password: '1234' },
     'kimsj': { name: '김성중 (과장)', role: 'staff', password: '1234' },
     'hwangyw': { name: '황용운 (대리)', role: 'staff', password: '1234' },
 };
 
-const STAFF_RESTRICTED_PAGES = ['dashboard', 'cashflow', 'finance', 'data-init'];
+function getUsers() {
+    try {
+        const saved = localStorage.getItem('elmax_users');
+        if (saved) return JSON.parse(saved);
+    } catch(e) {}
+    return {...DEFAULT_USERS};
+}
+
+function saveUsers(users) {
+    localStorage.setItem('elmax_users', JSON.stringify(users));
+}
+
+let USERS = getUsers();
+
+const STAFF_RESTRICTED_PAGES = ['dashboard', 'cashflow', 'finance', 'data-init', 'users'];
 
 function canAccess(userRole, page) {
     if (userRole === 'admin') return true;
@@ -294,105 +308,105 @@ function getInitialData() {
 function getDefaultData() {
     return {
         version: 4,
-        company: { name: '(주)엘맥스텍', bizNo: '131-81-56243', rep: '김중수', addr: '인천광역시 남동구 은봉로 51 (논현동) B동 412호', bizType: '제조', bizItem: '전자석크러치', phone: '010-7373-6734', fax: '' },
+        company: { name: '(ì£¼)ìë§¥ì¤í', bizNo: '131-81-56243', rep: 'ê¹ì¤ì', addr: 'ì¸ì²ê´ì­ì ë¨ëêµ¬ ìë´ë¡ 51 (ë¼íë) Bë 412í¸', bizType: 'ì ì¡°', bizItem: 'ì ììí¬ë¬ì¹', phone: '010-7373-6734', fax: '' },
         clients: [
-            { id:1, name:'푸른기술', bizNo:'229-81-28699', rep:'함현철', type:'고객사' },
-            { id:2, name:'에이텍', bizNo:'214-81-56422', rep:'신승영,이상훈', type:'고객사' },
-            { id:3, name:'미도리야전기코리아', bizNo:'220-86-06859', rep:'YAMAMOTO NAOKI', type:'고객사' },
-            { id:4, name:'에니텍시스', bizNo:'205-81-30675', rep:'홍사혁', type:'고객사' },
-            { id:5, name:'캐논코리아', bizNo:'120-81-15636', rep:'박정우', type:'고객사' },
-            { id:6, name:'와이즈', bizNo:'523-87-02119', rep:'김대영외 1명', type:'고객사' },
-            { id:7, name:'케이더블유트레', bizNo:'', rep:'', type:'고객사' },
-            { id:8, name:'금영테크', bizNo:'131-34-51720', rep:'김영찬', type:'공급사' },
-            { id:9, name:'선진분말야금', bizNo:'137-81-50591', rep:'송영호', type:'공급사' },
-            { id:10, name:'제이아이텍', bizNo:'823-27-00185', rep:'배수호', type:'공급사' },
-            { id:11, name:'신일테크', bizNo:'130-86-18028', rep:'김수경', type:'공급사' },
-            { id:12, name:'스마트에프앙에스', bizNo:'128-86-51951', rep:'엄선중', type:'공급사' },
-            { id:13, name:'우리종합상사', bizNo:'409-14-90308', rep:'김귀남', type:'공급사' },
-            { id:14, name:'이음로직스', bizNo:'827-86-02479', rep:'김국태', type:'외주' },
-            { id:15, name:'한라스프링', bizNo:'113-21-97067', rep:'문건우', type:'공급사' },
-            { id:16, name:'신대성스프링', bizNo:'381-78-00077', rep:'장봉득', type:'공급사' },
-            { id:17, name:'한진물산', bizNo:'131-81-59221', rep:'노진억', type:'공급사' },
-            { id:18, name:'티테크', bizNo:'131-10-99086', rep:'박경순', type:'공급사' },
-            { id:19, name:'웹케시', bizNo:'214-86-35102', rep:'강원주', type:'서비스' },
-            { id:20, name:'김순근세무회계사무소', bizNo:'113-04-52840', rep:'김순근', type:'서비스' },
+            { id:1, name:'í¸ë¥¸ê¸°ì ', bizNo:'229-81-28699', rep:'í¨íì² ', type:'ê³ ê°ì¬' },
+            { id:2, name:'ìì´í', bizNo:'214-81-56422', rep:'ì ì¹ì,ì´ìí', type:'ê³ ê°ì¬' },
+            { id:3, name:'ë¯¸ëë¦¬ì¼ì ê¸°ì½ë¦¬ì', bizNo:'220-86-06859', rep:'YAMAMOTO NAOKI', type:'ê³ ê°ì¬' },
+            { id:4, name:'ìëíìì¤', bizNo:'205-81-30675', rep:'íì¬í', type:'ê³ ê°ì¬' },
+            { id:5, name:'ìºë¼ì½ë¦¬ì', bizNo:'120-81-15636', rep:'ë°ì ì°', type:'ê³ ê°ì¬' },
+            { id:6, name:'ìì´ì¦', bizNo:'523-87-02119', rep:'ê¹ëìì¸ 1ëª', type:'ê³ ê°ì¬' },
+            { id:7, name:'ì¼ì´ëë¸ì í¸ë ', bizNo:'', rep:'', type:'ê³ ê°ì¬' },
+            { id:8, name:'ê¸ìíí¬', bizNo:'131-34-51720', rep:'ê¹ìì°¬', type:'ê³µê¸ì¬' },
+            { id:9, name:'ì ì§ë¶ë§ì¼ê¸', bizNo:'137-81-50591', rep:'ì¡ìí¸', type:'ê³µê¸ì¬' },
+            { id:10, name:'ì ì´ìì´í', bizNo:'823-27-00185', rep:'ë°°ìí¸', type:'ê³µê¸ì¬' },
+            { id:11, name:'ì ì¼íí¬', bizNo:'130-86-18028', rep:'ê¹ìê²½', type:'ê³µê¸ì¬' },
+            { id:12, name:'ì¤ë§í¸ìíììì¤', bizNo:'128-86-51951', rep:'ìì ì¤', type:'ê³µê¸ì¬' },
+            { id:13, name:'ì°ë¦¬ì¢í©ìì¬', bizNo:'409-14-90308', rep:'ê¹ê·ë¨', type:'ê³µê¸ì¬' },
+            { id:14, name:'ì´ìë¡ì§ì¤', bizNo:'827-86-02479', rep:'ê¹êµ­í', type:'ì¸ì£¼' },
+            { id:15, name:'íë¼ì¤íë§', bizNo:'113-21-97067', rep:'ë¬¸ê±´ì°', type:'ê³µê¸ì¬' },
+            { id:16, name:'ì ëì±ì¤íë§', bizNo:'381-78-00077', rep:'ì¥ë´ë', type:'ê³µê¸ì¬' },
+            { id:17, name:'íì§ë¬¼ì°', bizNo:'131-81-59221', rep:'ë¸ì§ìµ', type:'ê³µê¸ì¬' },
+            { id:18, name:'í°íí¬', bizNo:'131-10-99086', rep:'ë°ê²½ì', type:'ê³µê¸ì¬' },
+            { id:19, name:'ì¹ì¼ì', bizNo:'214-86-35102', rep:'ê°ìì£¼', type:'ìë¹ì¤' },
+            { id:20, name:'ê¹ìê·¼ì¸ë¬´íê³ì¬ë¬´ì', bizNo:'113-04-52840', rep:'ê¹ìê·¼', type:'ìë¹ì¤' },
         ],
         products: [
-            { id:1, code:'LCDM-1000', name:'LCDM-1000', vendorName:'E3637RH24P LCDM-1000', category:'완제품', costPrice:4500, sellPrice:6500, unit:'EA' },
-            { id:2, code:'LCDM-2000', name:'LCDM-2000', vendorName:'LCDM-2000', category:'완제품', costPrice:4500, sellPrice:6500, unit:'EA' },
-            { id:3, code:'LCDM-4000', name:'LCDM-4000', vendorName:'LCDM-4000', category:'완제품', costPrice:4500, sellPrice:6500, unit:'EA' },
-            { id:4, code:'ECDM-100', name:'ECDM-100', vendorName:'EL24PL ECDM', category:'완제품', costPrice:5200, sellPrice:7450, unit:'EA' },
-            { id:5, code:'ECDM-200', name:'ECDM-200', vendorName:'ECDM-200', category:'완제품', costPrice:5200, sellPrice:7450, unit:'EA' },
-            { id:6, code:'ECDM-400', name:'ECDM-400', vendorName:'ECDM-400', category:'완제품', costPrice:5200, sellPrice:7450, unit:'EA' },
-            { id:7, code:'PLE-100', name:'PLE-100', vendorName:'CLUTCH EO24PLE100', category:'완제품', costPrice:5300, sellPrice:7600, unit:'EA' },
-            { id:8, code:'CTNN-0001A', name:'CTNN-0001A', vendorName:'PICKUP YCST LM20', category:'완제품', costPrice:4700, sellPrice:6765, unit:'EA' },
-            { id:9, code:'4265N00009A', name:'4265N00009A', vendorName:'4265N00009A', category:'완제품', costPrice:4600, sellPrice:6605, unit:'EA' },
-            { id:10, code:'4265N00010A', name:'4265N00010A', vendorName:'4265N00010A', category:'완제품', costPrice:4600, sellPrice:6605, unit:'EA' },
-            { id:11, code:'4265N00011A', name:'4265N00011A', vendorName:'4265N00011A', category:'완제품', costPrice:4600, sellPrice:6605, unit:'EA' },
-            { id:12, code:'121K40440', name:'VOLANTE(121K40440)', vendorName:'121K40440', category:'완제품', costPrice:3200, sellPrice:4937.5, unit:'EA' },
-            { id:13, code:'CLUTCH-5KG', name:'CLUTCH (5kg)', vendorName:'Clutch:Feed:PM3', category:'완제품', costPrice:6300, sellPrice:9000, unit:'EA' },
-            { id:14, code:'CLUTCH-7.5KG', name:'CLUTCH (7.5kg)', vendorName:'CLUTCH (7.5kg)', category:'완제품', costPrice:7900, sellPrice:11300, unit:'EA' },
-            { id:15, code:'RMC-210', name:'RMC-210', vendorName:'RMC-210', category:'완제품', costPrice:7400, sellPrice:10645, unit:'EA' },
-            { id:16, code:'RMC-209', name:'RMC-209', vendorName:'RMC-209', category:'완제품', costPrice:7400, sellPrice:10645, unit:'EA' },
-            { id:17, code:'HU1-2024-000', name:'HU1-2024-000', vendorName:'HU1-2024-000', category:'완제품', costPrice:75, sellPrice:107, unit:'EA' },
+            { id:1, code:'LCDM-1000', name:'LCDM-1000', vendorName:'E3637RH24P LCDM-1000', category:'ìì í', costPrice:4500, sellPrice:6500, unit:'EA' },
+            { id:2, code:'LCDM-2000', name:'LCDM-2000', vendorName:'LCDM-2000', category:'ìì í', costPrice:4500, sellPrice:6500, unit:'EA' },
+            { id:3, code:'LCDM-4000', name:'LCDM-4000', vendorName:'LCDM-4000', category:'ìì í', costPrice:4500, sellPrice:6500, unit:'EA' },
+            { id:4, code:'ECDM-100', name:'ECDM-100', vendorName:'EL24PL ECDM', category:'ìì í', costPrice:5200, sellPrice:7450, unit:'EA' },
+            { id:5, code:'ECDM-200', name:'ECDM-200', vendorName:'ECDM-200', category:'ìì í', costPrice:5200, sellPrice:7450, unit:'EA' },
+            { id:6, code:'ECDM-400', name:'ECDM-400', vendorName:'ECDM-400', category:'ìì í', costPrice:5200, sellPrice:7450, unit:'EA' },
+            { id:7, code:'PLE-100', name:'PLE-100', vendorName:'CLUTCH EO24PLE100', category:'ìì í', costPrice:5300, sellPrice:7600, unit:'EA' },
+            { id:8, code:'CTNN-0001A', name:'CTNN-0001A', vendorName:'PICKUP YCST LM20', category:'ìì í', costPrice:4700, sellPrice:6765, unit:'EA' },
+            { id:9, code:'4265N00009A', name:'4265N00009A', vendorName:'4265N00009A', category:'ìì í', costPrice:4600, sellPrice:6605, unit:'EA' },
+            { id:10, code:'4265N00010A', name:'4265N00010A', vendorName:'4265N00010A', category:'ìì í', costPrice:4600, sellPrice:6605, unit:'EA' },
+            { id:11, code:'4265N00011A', name:'4265N00011A', vendorName:'4265N00011A', category:'ìì í', costPrice:4600, sellPrice:6605, unit:'EA' },
+            { id:12, code:'121K40440', name:'VOLANTE(121K40440)', vendorName:'121K40440', category:'ìì í', costPrice:3200, sellPrice:4937.5, unit:'EA' },
+            { id:13, code:'CLUTCH-5KG', name:'CLUTCH (5kg)', vendorName:'Clutch:Feed:PM3', category:'ìì í', costPrice:6300, sellPrice:9000, unit:'EA' },
+            { id:14, code:'CLUTCH-7.5KG', name:'CLUTCH (7.5kg)', vendorName:'CLUTCH (7.5kg)', category:'ìì í', costPrice:7900, sellPrice:11300, unit:'EA' },
+            { id:15, code:'RMC-210', name:'RMC-210', vendorName:'RMC-210', category:'ìì í', costPrice:7400, sellPrice:10645, unit:'EA' },
+            { id:16, code:'RMC-209', name:'RMC-209', vendorName:'RMC-209', category:'ìì í', costPrice:7400, sellPrice:10645, unit:'EA' },
+            { id:17, code:'HU1-2024-000', name:'HU1-2024-000', vendorName:'HU1-2024-000', category:'ìì í', costPrice:75, sellPrice:107, unit:'EA' },
         ],
         inventory: [
-            { id:1, category:'완제품', code:'LCDM-1000', name:'LCDM-1000', qty:450, location:'A-01', notes:'안정적 재고' },
-            { id:2, category:'완제품', code:'ECDM-100', name:'ECDM-100', qty:320, location:'A-02', notes:'' },
-            { id:3, category:'완제품', code:'PLE-100', name:'PLE-100', qty:280, location:'A-03', notes:'급수 필요' },
-            { id:4, category:'반제품', code:'SHA-001', name:'SHAFT (준성품)', qty:150, location:'B-01', notes:'' },
-            { id:5, category:'반제품', code:'BOB-001', name:'BOBBIN (준성품)', qty:200, location:'B-02', notes:'' },
-            { id:6, category:'기본부품', code:'CMP-001', name:'기본부품 A', qty:1200, location:'C-01', notes:'원재료' },
-            { id:7, category:'기본부품', code:'CMP-002', name:'기본부품 B', qty:850, location:'C-02', notes:'' },
+            { id:1, category:'ìì í', code:'LCDM-1000', name:'LCDM-1000', qty:450, location:'A-01', notes:'ìì ì  ì¬ê³ ' },
+            { id:2, category:'ìì í', code:'ECDM-100', name:'ECDM-100', qty:320, location:'A-02', notes:'' },
+            { id:3, category:'ìì í', code:'PLE-100', name:'PLE-100', qty:280, location:'A-03', notes:'ê¸ì íì' },
+            { id:4, category:'ë°ì í', code:'SHA-001', name:'SHAFT (ì¤ì±í)', qty:150, location:'B-01', notes:'' },
+            { id:5, category:'ë°ì í', code:'BOB-001', name:'BOBBIN (ì¤ì±í)', qty:200, location:'B-02', notes:'' },
+            { id:6, category:'ê¸°ë³¸ë¶í', code:'CMP-001', name:'ê¸°ë³¸ë¶í A', qty:1200, location:'C-01', notes:'ìì¬ë£' },
+            { id:7, category:'ê¸°ë³¸ë¶í', code:'CMP-002', name:'ê¸°ë³¸ë¶í B', qty:850, location:'C-02', notes:'' },
         ],
         moldsAndDrawings: {
             molds: [
-                { id:1, name:'GEAR', code:'HU1-2022-000', material:'POM', location:'건일테크 보관', status:'정상' },
-                { id:2, name:'SHAFT', code:'HU1-2045-001', material:'PBT', location:'건일테크 보관', status:'정상' },
-                { id:3, name:'BOBBIN', code:'HU1-2046-000', material:'KEP', location:'건일테크 보관', status:'정상' },
-                { id:4, name:'HOUSING', code:'HU1-2050-000', material:'POM', location:'티테크 이관', status:'이관' },
+                { id:1, name:'GEAR', code:'HU1-2022-000', material:'POM', location:'ê±´ì¼íí¬ ë³´ê´', status:'ì ì' },
+                { id:2, name:'SHAFT', code:'HU1-2045-001', material:'PBT', location:'ê±´ì¼íí¬ ë³´ê´', status:'ì ì' },
+                { id:3, name:'BOBBIN', code:'HU1-2046-000', material:'KEP', location:'ê±´ì¼íí¬ ë³´ê´', status:'ì ì' },
+                { id:4, name:'HOUSING', code:'HU1-2050-000', material:'POM', location:'í°íí¬ ì´ê´', status:'ì´ê´' },
             ],
             moldStatus: [
-                { location:'우리정공', count:15, notes:'일부 분실(2018년 10월), 공유금형 있음' },
-                { location:'건일테크', count:3, notes:'핵심 금형 안전보관' },
+                { location:'ì°ë¦¬ì ê³µ', count:15, notes:'ì¼ë¶ ë¶ì¤(2018ë 10ì), ê³µì ê¸í ìì' },
+                { location:'ê±´ì¼íí¬', count:3, notes:'íµì¬ ê¸í ìì ë³´ê´' },
             ],
             drawings: [
-                { id:1, filename:'GEAR_BOBBIN_DRAWING_01.dwg', type:'도면', relatedProduct:'GEAR BOBBIN', model:'Xerox' },
-                { id:2, filename:'GEAR_BOBBIN_DRAWING_02.dwg', type:'도면', relatedProduct:'GEAR BOBBIN', model:'FXK Volante' },
-                { id:3, filename:'SHAFT_DRAWING_01.dwg', type:'도면', relatedProduct:'SHAFT', model:'Blue Technology' },
-                { id:4, filename:'BOBBIN_DRAWING_01.dwg', type:'도면', relatedProduct:'BOBBIN', model:'Xerox' },
-                { id:5, filename:'BUSHING_DRAWING_01.dwg', type:'도면', relatedProduct:'BUSHING', model:'FXK Volante' },
+                { id:1, filename:'GEAR_BOBBIN_DRAWING_01.dwg', type:'ëë©´', relatedProduct:'GEAR BOBBIN', model:'Xerox' },
+                { id:2, filename:'GEAR_BOBBIN_DRAWING_02.dwg', type:'ëë©´', relatedProduct:'GEAR BOBBIN', model:'FXK Volante' },
+                { id:3, filename:'SHAFT_DRAWING_01.dwg', type:'ëë©´', relatedProduct:'SHAFT', model:'Blue Technology' },
+                { id:4, filename:'BOBBIN_DRAWING_01.dwg', type:'ëë©´', relatedProduct:'BOBBIN', model:'Xerox' },
+                { id:5, filename:'BUSHING_DRAWING_01.dwg', type:'ëë©´', relatedProduct:'BUSHING', model:'FXK Volante' },
             ],
         },
         orders: [
-            { id:1, orderDate:'2026-03-30', dueDate:'2026-05-01', shipDate:'', client:'푸른기술', orderNo:'PO2603000308', clientProduct:'E3637RH24P LCDM-1000', product:'LCDM-1000', qty:1350, lotNo:'', invoiceDate:'', notes:'', status:'대기', trackingNo:'' },
-            { id:2, orderDate:'2026-03-30', dueDate:'2026-05-01', shipDate:'', client:'푸른기술', orderNo:'PO2603000288', clientProduct:'EL24PL ECDM', product:'ECDM-100', qty:300, lotNo:'', invoiceDate:'', notes:'', status:'대기', trackingNo:'' },
-            { id:3, orderDate:'2026-03-17', dueDate:'2026-05-17', shipDate:'', client:'푸른기술', orderNo:'PO2603000119', clientProduct:'CLUTCH EO24PLE100', product:'PLE-100', qty:500, lotNo:'', invoiceDate:'', notes:'', status:'대기', trackingNo:'' },
-            { id:4, orderDate:'2026-03-12', dueDate:'2026-04-01', shipDate:'', client:'에이텍', orderNo:'POZ20260300169', clientProduct:'CTNN-0001A', product:'CTNN-0001A', qty:600, lotNo:'', invoiceDate:'', notes:'', status:'납기초과', trackingNo:'' },
-            { id:5, orderDate:'2026-03-12', dueDate:'2026-04-01', shipDate:'2026-04-06', client:'에이텍', orderNo:'UPO20260300282', clientProduct:'4265N00010A', product:'4265N00010A', qty:200, lotNo:'', invoiceDate:'2026-04-15', notes:'', status:'출하완료', trackingNo:'HJ2604001' },
-            { id:6, orderDate:'2026-03-12', dueDate:'2026-04-01', shipDate:'2026-04-06', client:'에이텍', orderNo:'UPO20260300282', clientProduct:'4265N00009A', product:'4265N00009A', qty:200, lotNo:'', invoiceDate:'2026-04-15', notes:'', status:'출하완료', trackingNo:'HJ2604001' },
-            { id:7, orderDate:'2026-03-12', dueDate:'2026-04-01', shipDate:'2026-04-06', client:'에이텍', orderNo:'UPO20260300282', clientProduct:'4265N00011A', product:'4265N00011A', qty:200, lotNo:'', invoiceDate:'2026-04-15', notes:'', status:'출하완료', trackingNo:'HJ2604001' },
-            { id:8, orderDate:'2026-02-25', dueDate:'2026-03-15', shipDate:'2026-03-16', client:'미도리야전기코리아', orderNo:'PO2602250001', clientProduct:'121K40440', product:'121K40440', qty:5000, lotNo:'LT202603', invoiceDate:'2026-03-17', notes:'', status:'출하완료', trackingNo:'CJ2603001' },
+            { id:1, orderDate:'2026-03-30', dueDate:'2026-05-01', shipDate:'', client:'í¸ë¥¸ê¸°ì ', orderNo:'PO2603000308', clientProduct:'E3637RH24P LCDM-1000', product:'LCDM-1000', qty:1350, lotNo:'', invoiceDate:'', notes:'', status:'ëê¸°', trackingNo:'' },
+            { id:2, orderDate:'2026-03-30', dueDate:'2026-05-01', shipDate:'', client:'í¸ë¥¸ê¸°ì ', orderNo:'PO2603000288', clientProduct:'EL24PL ECDM', product:'ECDM-100', qty:300, lotNo:'', invoiceDate:'', notes:'', status:'ëê¸°', trackingNo:'' },
+            { id:3, orderDate:'2026-03-17', dueDate:'2026-05-17', shipDate:'', client:'í¸ë¥¸ê¸°ì ', orderNo:'PO2603000119', clientProduct:'CLUTCH EO24PLE100', product:'PLE-100', qty:500, lotNo:'', invoiceDate:'', notes:'', status:'ëê¸°', trackingNo:'' },
+            { id:4, orderDate:'2026-03-12', dueDate:'2026-04-01', shipDate:'', client:'ìì´í', orderNo:'POZ20260300169', clientProduct:'CTNN-0001A', product:'CTNN-0001A', qty:600, lotNo:'', invoiceDate:'', notes:'', status:'ë©ê¸°ì´ê³¼', trackingNo:'' },
+            { id:5, orderDate:'2026-03-12', dueDate:'2026-04-01', shipDate:'2026-04-06', client:'ìì´í', orderNo:'UPO20260300282', clientProduct:'4265N00010A', product:'4265N00010A', qty:200, lotNo:'', invoiceDate:'2026-04-15', notes:'', status:'ì¶íìë£', trackingNo:'HJ2604001' },
+            { id:6, orderDate:'2026-03-12', dueDate:'2026-04-01', shipDate:'2026-04-06', client:'ìì´í', orderNo:'UPO20260300282', clientProduct:'4265N00009A', product:'4265N00009A', qty:200, lotNo:'', invoiceDate:'2026-04-15', notes:'', status:'ì¶íìë£', trackingNo:'HJ2604001' },
+            { id:7, orderDate:'2026-03-12', dueDate:'2026-04-01', shipDate:'2026-04-06', client:'ìì´í', orderNo:'UPO20260300282', clientProduct:'4265N00011A', product:'4265N00011A', qty:200, lotNo:'', invoiceDate:'2026-04-15', notes:'', status:'ì¶íìë£', trackingNo:'HJ2604001' },
+            { id:8, orderDate:'2026-02-25', dueDate:'2026-03-15', shipDate:'2026-03-16', client:'ë¯¸ëë¦¬ì¼ì ê¸°ì½ë¦¬ì', orderNo:'PO2602250001', clientProduct:'121K40440', product:'121K40440', qty:5000, lotNo:'LT202603', invoiceDate:'2026-03-17', notes:'', status:'ì¶íìë£', trackingNo:'CJ2603001' },
         ],
         salesInvoices: [
-            { id:1, invoiceDate:'2026-04-15', vendor:'에이텍', amount:5080000, bankDeposited:false, depositDate:'', depositAmount:0, notes:'미입금' },
-            { id:2, invoiceDate:'2026-03-17', vendor:'미도리야전기코리아', amount:19687500, bankDeposited:true, depositDate:'2026-03-20', depositAmount:19687500, notes:'입금완료' },
+            { id:1, invoiceDate:'2026-04-15', vendor:'ìì´í', amount:5080000, bankDeposited:false, depositDate:'', depositAmount:0, notes:'ë¯¸ìê¸' },
+            { id:2, invoiceDate:'2026-03-17', vendor:'ë¯¸ëë¦¬ì¼ì ê¸°ì½ë¦¬ì', amount:19687500, bankDeposited:true, depositDate:'2026-03-20', depositAmount:19687500, notes:'ìê¸ìë£' },
         ],
         purchaseInvoices: [
-            { id:1, invoiceDate:'2026-04-10', vendor:'제이아이텍', amount:450000, bankWithdrawn:false, withdrawalDate:'', withdrawalAmount:0, notes:'미출금' },
-            { id:2, invoiceDate:'2026-03-15', vendor:'선진분말야금', amount:720000, bankWithdrawn:true, withdrawalDate:'2026-03-18', withdrawalAmount:720000, notes:'출금완료' },
+            { id:1, invoiceDate:'2026-04-10', vendor:'ì ì´ìì´í', amount:450000, bankWithdrawn:false, withdrawalDate:'', withdrawalAmount:0, notes:'ë¯¸ì¶ê¸' },
+            { id:2, invoiceDate:'2026-03-15', vendor:'ì ì§ë¶ë§ì¼ê¸', amount:720000, bankWithdrawn:true, withdrawalDate:'2026-03-18', withdrawalAmount:720000, notes:'ì¶ê¸ìë£' },
         ],
         statements: [
-            { id:1, statementNo:'ST202604001', clientId:2, clientName:'에이텍', createdDate:'2026-04-06', sentDate:'', status:'생성', items: [
+            { id:1, statementNo:'ST202604001', clientId:2, clientName:'ìì´í', createdDate:'2026-04-06', sentDate:'', status:'ìì±', items: [
                 { month:4, day:6, productName:'4265N00010A', spec:'', qty:200, unitPrice:0, suppliedAmount:0, tax:0 },
             ] },
         ],
         bankTransactions: [
-            { id:1, date:'2026-04-05', type:'입금', description:'푸른기술', amount:15000000, balance:45000000 },
-            { id:2, date:'2026-04-04', type:'출금', description:'이음로직스 용역비', amount:3500000, balance:30000000 },
-            { id:3, date:'2026-04-03', type:'입금', description:'에이텍', amount:5080000, balance:33500000 },
-            { id:4, date:'2026-04-02', type:'출금', description:'제이아이텍 부품비', amount:450000, balance:28420000 },
-            { id:5, date:'2026-04-01', type:'입금', description:'미도리야전기코리아', amount:19687500, balance:28870000 },
+            { id:1, date:'2026-04-05', type:'ìê¸', description:'í¸ë¥¸ê¸°ì ', amount:15000000, balance:45000000 },
+            { id:2, date:'2026-04-04', type:'ì¶ê¸', description:'ì´ìë¡ì§ì¤ ì©ì­ë¹', amount:3500000, balance:30000000 },
+            { id:3, date:'2026-04-03', type:'ìê¸', description:'ìì´í', amount:5080000, balance:33500000 },
+            { id:4, date:'2026-04-02', type:'ì¶ê¸', description:'ì ì´ìì´í ë¶íë¹', amount:450000, balance:28420000 },
+            { id:5, date:'2026-04-01', type:'ìê¸', description:'ë¯¸ëë¦¬ì¼ì ê¸°ì½ë¦¬ì', amount:19687500, balance:28870000 },
         ],
         nextId: 100,
     };
@@ -406,12 +420,12 @@ function LoginPage({ onLogin }) {
 
     const handleLogin = () => {
         if (!id || !password) {
-            setError('ID와 비밀번호를 입력해주세요.');
+            setError('IDì ë¹ë°ë²í¸ë¥¼ ìë ¥í´ì£¼ì¸ì.');
             return;
         }
         const user = USERS[id];
         if (!user || user.password !== password) {
-            setError('ID 또는 비밀번호가 일치하지 않습니다.');
+            setError('ID ëë ë¹ë°ë²í¸ê° ì¼ì¹íì§ ììµëë¤.');
             return;
         }
         onLogin({ id, ...user });
@@ -421,26 +435,26 @@ function LoginPage({ onLogin }) {
         <div className="login-container">
             <div className="login-card">
                 <div className="login-header">
-                    <div className="logo">엘맥스텍</div>
-                    <div className="subtitle">행정업무 대시보드</div>
+                    <div className="logo">ìë§¥ì¤í</div>
+                    <div className="subtitle">íì ìë¬´ ëìë³´ë</div>
                 </div>
                 {error && <div className="login-error">{error}</div>}
                 <form className="login-form" onSubmit={(e) => { e.preventDefault(); handleLogin(); }}>
                     <div className="form-group">
                         <label>ID</label>
-                        <input type="text" value={id} onChange={(e) => setId(e.target.value)} placeholder="사용자 ID 입력" />
+                        <input type="text" value={id} onChange={(e) => setId(e.target.value)} placeholder="ì¬ì©ì ID ìë ¥" />
                     </div>
                     <div className="form-group">
-                        <label>비밀번호</label>
-                        <input type="password" value={password} onChange={(e) => setPassword(e.target.value)} placeholder="비밀번호 입력" />
+                        <label>ë¹ë°ë²í¸</label>
+                        <input type="password" value={password} onChange={(e) => setPassword(e.target.value)} placeholder="ë¹ë°ë²í¸ ìë ¥" />
                     </div>
                     <button type="submit" className="btn btn-primary" style={{width:'100%', justifyContent:'center'}}>
-                        <i className="fas fa-sign-in-alt"></i> 로그인
+                        <i className="fas fa-sign-in-alt"></i> ë¡ê·¸ì¸
                     </button>
                 </form>
                 <div style={{marginTop:'16px', textAlign:'center', fontSize:'12px', color:' var(--gray)'}}>
-                    <p>테스트 계정: kimjs / 1234 (관리자)</p>
-                    <p>테스트 계정: kimsj / 1234 (스태프)</p>
+                    <p>íì¤í¸ ê³ì : kimjs / 1234 (ê´ë¦¬ì)</p>
+                    <p>íì¤í¸ ê³ì : kimsj / 1234 (ì¤íí)</p>
                 </div>
             </div>
         </div>
@@ -455,9 +469,9 @@ function DashboardPage({ data, setPage }) {
 
     const orders = data.orders || [];
     const totalOrders = orders.length;
-    const completedOrders = orders.filter(o => o.status === '출하완료').length;
-    const overduedOrders = orders.filter(o => o.status === '납기초과').length;
-    const pendingOrders = orders.filter(o => o.status === '대기').length;
+    const completedOrders = orders.filter(o => o.status === 'ì¶íìë£').length;
+    const overduedOrders = orders.filter(o => o.status === 'ë©ê¸°ì´ê³¼').length;
+    const pendingOrders = orders.filter(o => o.status === 'ëê¸°').length;
 
     const revenue = data.salesInvoices ? data.salesInvoices.reduce((sum, inv) => sum + (inv.bankDeposited ? inv.depositAmount : 0), 0) : 0;
     const pendingRevenue = data.salesInvoices ? data.salesInvoices.reduce((sum, inv) => sum + (!inv.bankDeposited ? inv.amount : 0), 0) : 0;
@@ -465,31 +479,31 @@ function DashboardPage({ data, setPage }) {
     return (
         <>
             <div style={{marginBottom:'24px'}}>
-                <h2 style={{fontSize:'20px', fontWeight:'600', marginBottom:'16px'}}>핵심 지표</h2>
+                <h2 style={{fontSize:'20px', fontWeight:'600', marginBottom:'16px'}}>íµì¬ ì§í</h2>
                 <div className="stat-grid">
                     <div className="stat-card" onClick={() => setPage('orders')}>
                         <StatIcon bg="var(--primary-light)" color="var(--primary)" icon="fa-boxes" />
-                        <div className="label">총 발주건수</div>
+                        <div className="label">ì´ ë°ì£¼ê±´ì</div>
                         <div className="value">{fmt(totalOrders)}</div>
-                        <div className="change up"><i className="fas fa-arrow-up"></i> 완료: {fmt(completedOrders)}</div>
+                        <div className="change up"><i className="fas fa-arrow-up"></i> ìë£: {fmt(completedOrders)}</div>
                     </div>
                     <div className="stat-card" onClick={() => setPage('orders')}>
                         <StatIcon bg="var(--danger-light)" color="var(--danger)" icon="fa-clock" />
-                        <div className="label">납기초과</div>
+                        <div className="label">ë©ê¸°ì´ê³¼</div>
                         <div className="value">{fmt(overduedOrders)}</div>
-                        <div className="change down"><i className="fas fa-arrow-down"></i> 대기: {fmt(pendingOrders)}</div>
+                        <div className="change down"><i className="fas fa-arrow-down"></i> ëê¸°: {fmt(pendingOrders)}</div>
                     </div>
                     <div className="stat-card" onClick={() => setPage('finance')}>
                         <StatIcon bg="var(--secondary-light)" color="var(--secondary)" icon="fa-coins" />
-                        <div className="label">정산완료</div>
+                        <div className="label">ì ì°ìë£</div>
                         <div className="value">{fmtW(revenue)}</div>
-                        <div className="change up"><i className="fas fa-arrow-up"></i> 미입금: {fmtW(pendingRevenue)}</div>
+                        <div className="change up"><i className="fas fa-arrow-up"></i> ë¯¸ìê¸: {fmtW(pendingRevenue)}</div>
                     </div>
                     <div className="stat-card" onClick={() => setPage('inventory')}>
                         <StatIcon bg="var(--warning-light)" color="var(--warning)" icon="fa-warehouse" />
-                        <div className="label">전체 재고</div>
+                        <div className="label">ì ì²´ ì¬ê³ </div>
                         <div className="value">{fmt(data.inventory?.length || 0)}</div>
-                        <div className="change" style={{color:'var(--gray)'}}><i className="fas fa-info-circle"></i> {fmt(data.inventory?.reduce((s,i) => s+i.qty,0) || 0)} 개</div>
+                        <div className="change" style={{color:'var(--gray)'}}><i className="fas fa-info-circle"></i> {fmt(data.inventory?.reduce((s,i) => s+i.qty,0) || 0)} ê°</div>
                     </div>
                 </div>
             </div>
@@ -497,21 +511,21 @@ function DashboardPage({ data, setPage }) {
             <div className="grid-2">
                 <div className="card">
                     <div className="card-header">
-                        <h3>최근 발주건</h3>
+                        <h3>ìµê·¼ ë°ì£¼ê±´</h3>
                     </div>
                     <div className="card-body">
                         {orders.slice(0, 5).length === 0 ? (
                             <div className="empty-state">
                                 <i className="fas fa-inbox"></i>
-                                <p>발주 내역이 없습니다.</p>
+                                <p>ë°ì£¼ ë´ì­ì´ ììµëë¤.</p>
                             </div>
                         ) : (
                             <table>
                                 <thead>
                                     <tr>
-                                        <th>발주일</th>
-                                        <th>업체</th>
-                                        <th>상태</th>
+                                        <th>ë°ì£¼ì¼</th>
+                                        <th>ìì²´</th>
+                                        <th>ìí</th>
                                     </tr>
                                 </thead>
                                 <tbody>
@@ -521,9 +535,9 @@ function DashboardPage({ data, setPage }) {
                                             <td>{o.client}</td>
                                             <td>
                                                 <span className={`badge ${
-                                                    o.status === '출하완료' ? 'badge-green' :
-                                                    o.status === '납기초과' ? 'badge-red' :
-                                                    o.status === '진행중' ? 'badge-blue' : 'badge-gray'
+                                                    o.status === 'ì¶íìë£' ? 'badge-green' :
+                                                    o.status === 'ë©ê¸°ì´ê³¼' ? 'badge-red' :
+                                                    o.status === 'ì§íì¤' ? 'badge-blue' : 'badge-gray'
                                                 }`}>{o.status}</span>
                                             </td>
                                         </tr>
@@ -536,16 +550,16 @@ function DashboardPage({ data, setPage }) {
 
                 <div className="card">
                     <div className="card-header">
-                        <h3>공지사항</h3>
+                        <h3>ê³µì§ì¬í­</h3>
                     </div>
                     <div className="card-body">
                         <div style={{paddingBottom:'12px', borderBottom:'1px solid var(--border)', marginBottom:'12px'}}>
-                            <div style={{fontSize:'13px', fontWeight:'600', marginBottom:'4px'}}>대시보드 v4.0 출시</div>
-                            <div style={{fontSize:'12px', color:'var(--gray)'}}>새로운 로그인 시스템 및 권한 관리가 추가되었습니다.</div>
+                            <div style={{fontSize:'13px', fontWeight:'600', marginBottom:'4px'}}>ëìë³´ë v4.0 ì¶ì</div>
+                            <div style={{fontSize:'12px', color:'var(--gray)'}}>ìë¡ì´ ë¡ê·¸ì¸ ìì¤í ë° ê¶í ê´ë¦¬ê° ì¶ê°ëììµëë¤.</div>
                         </div>
                         <div>
-                            <div style={{fontSize:'13px', fontWeight:'600', marginBottom:'4px'}}>데이터 백업 안내</div>
-                            <div style={{fontSize:'12px', color:'var(--gray)'}}>정기적인 데이터 백업을 권장합니다.</div>
+                            <div style={{fontSize:'13px', fontWeight:'600', marginBottom:'4px'}}>ë°ì´í° ë°±ì ìë´</div>
+                            <div style={{fontSize:'12px', color:'var(--gray)'}}>ì ê¸°ì ì¸ ë°ì´í° ë°±ìì ê¶ì¥í©ëë¤.</div>
                         </div>
                     </div>
                 </div>
@@ -562,37 +576,37 @@ function CashflowPage({ data }) {
     transactions.forEach(t => {
         const cat = categorizeTransaction(t.description);
         if (!categories[cat]) categories[cat] = { total: 0, count: 0, type: t.type };
-        if (t.type === '출금') categories[cat].total += t.amount;
+        if (t.type === 'ì¶ê¸') categories[cat].total += t.amount;
     });
 
-    const income = transactions.filter(t => t.type === '입금').reduce((s,t) => s+t.amount, 0);
-    const expense = transactions.filter(t => t.type === '출금').reduce((s,t) => s+t.amount, 0);
+    const income = transactions.filter(t => t.type === 'ìê¸').reduce((s,t) => s+t.amount, 0);
+    const expense = transactions.filter(t => t.type === 'ì¶ê¸').reduce((s,t) => s+t.amount, 0);
     const balance = income - expense;
 
     const sortedCats = Object.entries(categories).sort((a, b) => b[1].total - a[1].total);
 
     return (
         <div>
-            <h2 style={{fontSize:'20px', fontWeight:'600', marginBottom:'16px'}}>현금흐름</h2>
+            <h2 style={{fontSize:'20px', fontWeight:'600', marginBottom:'16px'}}>íê¸íë¦</h2>
 
             <div className="cf-summary">
                 <div className="cf-box">
-                    <div className="cf-label">총 입금</div>
+                    <div className="cf-label">ì´ ìê¸</div>
                     <div className="cf-value positive">{fmtW(income)}</div>
                 </div>
                 <div className="cf-box">
-                    <div className="cf-label">총 출금</div>
+                    <div className="cf-label">ì´ ì¶ê¸</div>
                     <div className="cf-value negative">{fmtW(expense)}</div>
                 </div>
                 <div className="cf-box">
-                    <div className="cf-label">순 잔액</div>
+                    <div className="cf-label">ì ìì¡</div>
                     <div className={`cf-value ${balance >= 0 ? 'positive' : 'negative'}`}>{fmtW(balance)}</div>
                 </div>
             </div>
 
             <div className="card">
                 <div className="card-header">
-                    <h3>항목별 출금 현황</h3>
+                    <h3>í­ëª©ë³ ì¶ê¸ íí©</h3>
                 </div>
                 <div className="card-body">
                     {sortedCats.map(([cat, data]) => (
@@ -611,26 +625,26 @@ function CashflowPage({ data }) {
 
             <div className="card">
                 <div className="card-header">
-                    <h3>거래내역</h3>
+                    <h3>ê±°ëë´ì­</h3>
                 </div>
                 <div className="card-body">
                     <table>
                         <thead>
                             <tr>
-                                <th>일자</th>
-                                <th>구분</th>
-                                <th>내용</th>
-                                <th>금액</th>
-                                <th>잔액</th>
+                                <th>ì¼ì</th>
+                                <th>êµ¬ë¶</th>
+                                <th>ë´ì©</th>
+                                <th>ê¸ì¡</th>
+                                <th>ìì¡</th>
                             </tr>
                         </thead>
                         <tbody>
                             {transactions.map(t => (
                                 <tr key={t.id}>
                                     <td>{t.date}</td>
-                                    <td><span className={`badge ${t.type === '입금' ? 'badge-green' : 'badge-red'}`}>{t.type}</span></td>
+                                    <td><span className={`badge ${t.type === 'ìê¸' ? 'badge-green' : 'badge-red'}`}>{t.type}</span></td>
                                     <td>{t.description}</td>
-                                    <td className={t.type === '입금' ? 'text-secondary' : 'text-danger'}>{fmtW(t.amount)}</td>
+                                    <td className={t.type === 'ìê¸' ? 'text-secondary' : 'text-danger'}>{fmtW(t.amount)}</td>
                                     <td>{fmtW(t.balance)}</td>
                                 </tr>
                             ))}
@@ -655,16 +669,16 @@ function FinancePage({ data, setData }) {
             const parsed = await parseXlsx(file);
             setParsedFile(parsed);
         } catch(err) {
-            alert('파일 파싱 오류: ' + err.message);
+            alert('íì¼ íì± ì¤ë¥: ' + err.message);
         }
     };
 
     const salesInvoices = data.salesInvoices || [];
     const purchaseInvoices = data.purchaseInvoices || [];
 
-    // 매칭 현황 분석
+    // ë§¤ì¹­ íí© ë¶ì
     const orders = data.orders || [];
-    const shippedOrders = orders.filter(o => o.status === '출하완료');
+    const shippedOrders = orders.filter(o => o.status === 'ì¶íìë£');
     const unInvoicedOrders = shippedOrders.filter(o => !o.invoiceDate);
 
     const unmatchedSales = salesInvoices.filter(inv => !inv.bankDeposited);
@@ -672,38 +686,38 @@ function FinancePage({ data, setData }) {
 
     return (
         <div>
-            <h2 style={{fontSize:'20px', fontWeight:'600', marginBottom:'16px'}}>재무회계</h2>
+            <h2 style={{fontSize:'20px', fontWeight:'600', marginBottom:'16px'}}>ì¬ë¬´íê³</h2>
 
             <div className="tab-bar">
                 <div className={`tab ${tab === 'sales' ? 'active' : ''}`} onClick={() => setTab('sales')}>
-                    <i className="fas fa-file-invoice"></i> 매출 세금계산서
+                    <i className="fas fa-file-invoice"></i> ë§¤ì¶ ì¸ê¸ê³ì°ì
                 </div>
                 <div className={`tab ${tab === 'purchase' ? 'active' : ''}`} onClick={() => setTab('purchase')}>
-                    <i className="fas fa-file-invoice"></i> 매입 세금계산서
+                    <i className="fas fa-file-invoice"></i> ë§¤ì ì¸ê¸ê³ì°ì
                 </div>
                 <div className={`tab ${tab === 'matching' ? 'active' : ''}`} onClick={() => setTab('matching')}>
-                    <i className="fas fa-link"></i> 매칭현황
+                    <i className="fas fa-link"></i> ë§¤ì¹­íí©
                 </div>
             </div>
 
             {tab === 'sales' && (
                 <div className="card">
                     <div className="card-header">
-                        <h3>매출 세금계산서</h3>
+                        <h3>ë§¤ì¶ ì¸ê¸ê³ì°ì</h3>
                         <button className="btn btn-primary btn-sm" onClick={() => setShowUpload(true)}>
-                            <i className="fas fa-upload"></i> 파일 업로드
+                            <i className="fas fa-upload"></i> íì¼ ìë¡ë
                         </button>
                     </div>
                     <div className="card-body">
                         <table>
                             <thead>
                                 <tr>
-                                    <th>발행일</th>
-                                    <th>거래처</th>
-                                    <th>금액</th>
-                                    <th>입금 여부</th>
-                                    <th>입금일</th>
-                                    <th>비고</th>
+                                    <th>ë°íì¼</th>
+                                    <th>ê±°ëì²</th>
+                                    <th>ê¸ì¡</th>
+                                    <th>ìê¸ ì¬ë¶</th>
+                                    <th>ìê¸ì¼</th>
+                                    <th>ë¹ê³ </th>
                                 </tr>
                             </thead>
                             <tbody>
@@ -712,7 +726,7 @@ function FinancePage({ data, setData }) {
                                         <td>{inv.invoiceDate}</td>
                                         <td>{inv.vendor}</td>
                                         <td>{fmtW(inv.amount)}</td>
-                                        <td><span className={`badge ${inv.bankDeposited ? 'badge-green' : 'badge-red'}`}>{inv.bankDeposited ? '입금' : '미입금'}</span></td>
+                                        <td><span className={`badge ${inv.bankDeposited ? 'badge-green' : 'badge-red'}`}>{inv.bankDeposited ? 'ìê¸' : 'ë¯¸ìê¸'}</span></td>
                                         <td>{inv.depositDate || '-'}</td>
                                         <td>{inv.notes}</td>
                                     </tr>
@@ -726,21 +740,21 @@ function FinancePage({ data, setData }) {
             {tab === 'purchase' && (
                 <div className="card">
                     <div className="card-header">
-                        <h3>매입 세금계산서</h3>
+                        <h3>ë§¤ì ì¸ê¸ê³ì°ì</h3>
                         <button className="btn btn-primary btn-sm" onClick={() => setShowUpload(true)}>
-                            <i className="fas fa-upload"></i> 파일 업로드
+                            <i className="fas fa-upload"></i> íì¼ ìë¡ë
                         </button>
                     </div>
                     <div className="card-body">
                         <table>
                             <thead>
                                 <tr>
-                                    <th>발행일</th>
-                                    <th>거래처</th>
-                                    <th>금액</th>
-                                    <th>출금 여부</th>
-                                    <th>출금일</th>
-                                    <th>비고</th>
+                                    <th>ë°íì¼</th>
+                                    <th>ê±°ëì²</th>
+                                    <th>ê¸ì¡</th>
+                                    <th>ì¶ê¸ ì¬ë¶</th>
+                                    <th>ì¶ê¸ì¼</th>
+                                    <th>ë¹ê³ </th>
                                 </tr>
                             </thead>
                             <tbody>
@@ -749,7 +763,7 @@ function FinancePage({ data, setData }) {
                                         <td>{inv.invoiceDate}</td>
                                         <td>{inv.vendor}</td>
                                         <td>{fmtW(inv.amount)}</td>
-                                        <td><span className={`badge ${inv.bankWithdrawn ? 'badge-green' : 'badge-red'}`}>{inv.bankWithdrawn ? '출금' : '미출금'}</span></td>
+                                        <td><span className={`badge ${inv.bankWithdrawn ? 'badge-green' : 'badge-red'}`}>{inv.bankWithdrawn ? 'ì¶ê¸' : 'ë¯¸ì¶ê¸'}</span></td>
                                         <td>{inv.withdrawalDate || '-'}</td>
                                         <td>{inv.notes}</td>
                                     </tr>
@@ -764,23 +778,23 @@ function FinancePage({ data, setData }) {
                 <div>
                     <div className="card">
                         <div className="card-header">
-                            <h3>세금계산서 미발행 내역</h3>
+                            <h3>ì¸ê¸ê³ì°ì ë¯¸ë°í ë´ì­</h3>
                         </div>
                         <div className="card-body">
                             {unInvoicedOrders.length === 0 ? (
                                 <div className="empty-state">
                                     <i className="fas fa-check-circle"></i>
-                                    <p>모든 출하건에 세금계산서가 발행되었습니다.</p>
+                                    <p>ëª¨ë  ì¶íê±´ì ì¸ê¸ê³ì°ìê° ë°íëììµëë¤.</p>
                                 </div>
                             ) : (
                                 <table>
                                     <thead>
                                         <tr>
-                                            <th>출하일</th>
-                                            <th>거래처</th>
-                                            <th>제품</th>
-                                            <th>수량</th>
-                                            <th>상태</th>
+                                            <th>ì¶íì¼</th>
+                                            <th>ê±°ëì²</th>
+                                            <th>ì í</th>
+                                            <th>ìë</th>
+                                            <th>ìí</th>
                                         </tr>
                                     </thead>
                                     <tbody>
@@ -790,7 +804,7 @@ function FinancePage({ data, setData }) {
                                                 <td>{o.client}</td>
                                                 <td>{o.product}</td>
                                                 <td>{fmt(o.qty)}</td>
-                                                <td><span className="badge badge-red">미발행</span></td>
+                                                <td><span className="badge badge-red">ë¯¸ë°í</span></td>
                                             </tr>
                                         ))}
                                     </tbody>
@@ -801,22 +815,22 @@ function FinancePage({ data, setData }) {
 
                     <div className="card">
                         <div className="card-header">
-                            <h3>미입금 내역</h3>
+                            <h3>ë¯¸ìê¸ ë´ì­</h3>
                         </div>
                         <div className="card-body">
                             {unmatchedSales.length === 0 ? (
                                 <div className="empty-state">
                                     <i className="fas fa-check-circle"></i>
-                                    <p>모든 매출이 입금되었습니다.</p>
+                                    <p>ëª¨ë  ë§¤ì¶ì´ ìê¸ëììµëë¤.</p>
                                 </div>
                             ) : (
                                 <table>
                                     <thead>
                                         <tr>
-                                            <th>발행일</th>
-                                            <th>거래처</th>
-                                            <th>금액</th>
-                                            <th>상태</th>
+                                            <th>ë°íì¼</th>
+                                            <th>ê±°ëì²</th>
+                                            <th>ê¸ì¡</th>
+                                            <th>ìí</th>
                                         </tr>
                                     </thead>
                                     <tbody>
@@ -825,7 +839,7 @@ function FinancePage({ data, setData }) {
                                                 <td>{inv.invoiceDate}</td>
                                                 <td>{inv.vendor}</td>
                                                 <td>{fmtW(inv.amount)}</td>
-                                                <td><span className="badge badge-red">미입금</span></td>
+                                                <td><span className="badge badge-red">ë¯¸ìê¸</span></td>
                                             </tr>
                                         ))}
                                     </tbody>
@@ -836,22 +850,22 @@ function FinancePage({ data, setData }) {
 
                     <div className="card">
                         <div className="card-header">
-                            <h3>미출금 내역</h3>
+                            <h3>ë¯¸ì¶ê¸ ë´ì­</h3>
                         </div>
                         <div className="card-body">
                             {unmatchedPurchases.length === 0 ? (
                                 <div className="empty-state">
                                     <i className="fas fa-check-circle"></i>
-                                    <p>모든 매입이 출금되었습니다.</p>
+                                    <p>ëª¨ë  ë§¤ìì´ ì¶ê¸ëììµëë¤.</p>
                                 </div>
                             ) : (
                                 <table>
                                     <thead>
                                         <tr>
-                                            <th>발행일</th>
-                                            <th>거래처</th>
-                                            <th>금액</th>
-                                            <th>상태</th>
+                                            <th>ë°íì¼</th>
+                                            <th>ê±°ëì²</th>
+                                            <th>ê¸ì¡</th>
+                                            <th>ìí</th>
                                         </tr>
                                     </thead>
                                     <tbody>
@@ -860,7 +874,7 @@ function FinancePage({ data, setData }) {
                                                 <td>{inv.invoiceDate}</td>
                                                 <td>{inv.vendor}</td>
                                                 <td>{fmtW(inv.amount)}</td>
-                                                <td><span className="badge badge-red">미출금</span></td>
+                                                <td><span className="badge badge-red">ë¯¸ì¶ê¸</span></td>
                                             </tr>
                                         ))}
                                     </tbody>
@@ -875,7 +889,7 @@ function FinancePage({ data, setData }) {
                 <div className="modal-overlay" onClick={() => setShowUpload(false)}>
                     <div className="modal" onClick={(e) => e.stopPropagation()}>
                         <div className="modal-header">
-                            <h3>세금계산서 업로드</h3>
+                            <h3>ì¸ê¸ê³ì°ì ìë¡ë</h3>
                             <button className="btn btn-secondary btn-sm" onClick={() => setShowUpload(false)}>
                                 <i className="fas fa-times"></i>
                             </button>
@@ -883,12 +897,12 @@ function FinancePage({ data, setData }) {
                         <div className="modal-body">
                             <div className="upload-zone">
                                 <i className="fas fa-cloud-upload-alt"></i>
-                                <p>파일을 드래그하거나 클릭하여 업로드</p>
+                                <p>íì¼ì ëëê·¸íê±°ë í´ë¦­íì¬ ìë¡ë</p>
                                 <p className="sub">Excel (.xlsx, .xls, .csv)</p>
                                 <input type="file" accept=".xlsx,.xls,.csv" onChange={handleFileUpload} style={{display:'none'}} id="file-input" />
                                 <label htmlFor="file-input" style={{cursor:'pointer', marginTop:'16px'}}>
                                     <button type="button" className="btn btn-primary btn-sm" onClick={() => document.getElementById('file-input').click()}>
-                                        파일 선택
+                                        íì¼ ì í
                                     </button>
                                 </label>
                             </div>
@@ -907,13 +921,13 @@ function StatementPage({ data, setData }) {
     const [showCreateModal, setShowCreateModal] = useState(false);
     const [newStatement, setNewStatement] = useState({ clientId: '', items: [] });
 
-    const shippedOrders = (data.orders || []).filter(o => o.status === '출하완료');
+    const shippedOrders = (data.orders || []).filter(o => o.status === 'ì¶íìë£');
     const statements = data.statements || [];
     const clients = data.clients || [];
 
     const handleCreateStatement = () => {
         if (!newStatement.clientId) {
-            alert('거래처를 선택해주세요.');
+            alert('ê±°ëì²ë¥¼ ì íí´ì£¼ì¸ì.');
             return;
         }
         const newId = genId(data);
@@ -924,7 +938,7 @@ function StatementPage({ data, setData }) {
             clientName: clients.find(c => c.id === parseInt(newStatement.clientId))?.name || '',
             createdDate: new Date().toISOString().slice(0,10),
             sentDate: '',
-            status: '생성',
+            status: 'ìì±',
             items: shippedOrders.filter(o => o.client === clients.find(c => c.id === parseInt(newStatement.clientId))?.name).map(o => ({
                 month: new Date(o.shipDate).getMonth() + 1,
                 day: new Date(o.shipDate).getDate(),
@@ -985,9 +999,9 @@ function StatementPage({ data, setData }) {
 
         const makeCopy = (label, borderColor) => {
             return `
-            <div style="border:3px solid ${borderColor}; padding:0; margin-bottom:30px; page-break-inside:avoid; font-family:'Malgun Gothic','맑은 고딕',sans-serif; font-size:12px; width:100%; box-sizing:border-box;">
+            <div style="border:3px solid ${borderColor}; padding:0; margin-bottom:30px; page-break-inside:avoid; font-family:'Malgun Gothic','ë§ì ê³ ë',sans-serif; font-size:12px; width:100%; box-sizing:border-box;">
                 <div style="text-align:center; padding:12px 0 4px;">
-                    <h2 style="font-size:24px; font-weight:bold; letter-spacing:12px; margin:0; color:${borderColor};">거 래 명 세 표</h2>
+                    <h2 style="font-size:24px; font-weight:bold; letter-spacing:12px; margin:0; color:${borderColor};">ê±° ë ëª ì¸ í</h2>
                     <p style="font-size:11px; margin:4px 0 8px; color:#333;">[ &nbsp; ${label} &nbsp; ]</p>
                 </div>
                 <div style="padding:0 12px;">
@@ -996,47 +1010,47 @@ function StatementPage({ data, setData }) {
                             <td style="width:50%; vertical-align:top; padding-right:8px;">
                                 <table style="width:100%; border-collapse:collapse; font-size:11px;">
                                     <tr>
-                                        <td style="padding:2px 0;"><b>일 &nbsp;&nbsp;&nbsp; 자</b>: ${stDate}</td>
-                                        <td style="padding:2px 0;"><b>등 록 번 호</b>: ${client.bizNo||''}</td>
+                                        <td style="padding:2px 0;"><b>ì¼ &nbsp;&nbsp;&nbsp; ì</b>: ${stDate}</td>
+                                        <td style="padding:2px 0;"><b>ë± ë¡ ë² í¸</b>: ${client.bizNo||''}</td>
                                     </tr>
                                     <tr>
-                                        <td colspan="2" style="padding:2px 0;"><b>거 래 처</b>: ${client.name ? (client.name.startsWith('(주)') ? '' : '(주)') + client.name : ''}</td>
+                                        <td colspan="2" style="padding:2px 0;"><b>ê±° ë ì²</b>: ${client.name ? (client.name.startsWith('(ì£¼)') ? '' : '(ì£¼)') + client.name : ''}</td>
                                     </tr>
                                     <tr>
-                                        <td colspan="2" style="padding:2px 0;"><b>주 &nbsp;&nbsp;&nbsp; 소</b>: ${client.addr||''}</td>
+                                        <td colspan="2" style="padding:2px 0;"><b>ì£¼ &nbsp;&nbsp;&nbsp; ì</b>: ${client.addr||''}</td>
                                     </tr>
                                     <tr>
-                                        <td style="padding:2px 0;"><b>전 화 번 호</b>: ${client.phone||''}</td>
-                                        <td style="padding:2px 0;"><b>팩 스 번 호</b>: ${client.fax||''}</td>
+                                        <td style="padding:2px 0;"><b>ì  í ë² í¸</b>: ${client.phone||''}</td>
+                                        <td style="padding:2px 0;"><b>í© ì¤ ë² í¸</b>: ${client.fax||''}</td>
                                     </tr>
                                 </table>
                             </td>
                             <td style="width:50%; vertical-align:top; border-left:1px solid #999; padding-left:8px;">
                                 <table style="width:100%; border-collapse:collapse; font-size:11px;">
                                     <tr>
-                                        <td style="padding:2px 4px; width:60px;"><b>등록번호</b></td>
+                                        <td style="padding:2px 4px; width:60px;"><b>ë±ë¡ë²í¸</b></td>
                                         <td style="padding:2px 4px;" colspan="3">${co.bizNo}</td>
                                     </tr>
                                     <tr>
-                                        <td style="padding:2px 4px;"><b>상 호</b></td>
+                                        <td style="padding:2px 4px;"><b>ì í¸</b></td>
                                         <td style="padding:2px 4px;">${co.name}</td>
-                                        <td style="padding:2px 4px; width:40px;"><b>성명</b></td>
+                                        <td style="padding:2px 4px; width:40px;"><b>ì±ëª</b></td>
                                         <td style="padding:2px 4px;">${co.rep} <span style="color:red; font-size:18px;">&#12958;</span></td>
                                     </tr>
                                     <tr>
-                                        <td style="padding:2px 4px;"><b>주 소</b></td>
+                                        <td style="padding:2px 4px;"><b>ì£¼ ì</b></td>
                                         <td style="padding:2px 4px;" colspan="3">${co.addr}</td>
                                     </tr>
                                     <tr>
-                                        <td style="padding:2px 4px;"><b>업태</b></td>
+                                        <td style="padding:2px 4px;"><b>ìí</b></td>
                                         <td style="padding:2px 4px;">${co.bizType}</td>
-                                        <td style="padding:2px 4px;"><b>종목</b></td>
+                                        <td style="padding:2px 4px;"><b>ì¢ëª©</b></td>
                                         <td style="padding:2px 4px;">${co.bizItem}</td>
                                     </tr>
                                     <tr>
-                                        <td style="padding:2px 4px;"><b>전화번호</b></td>
+                                        <td style="padding:2px 4px;"><b>ì íë²í¸</b></td>
                                         <td style="padding:2px 4px;">${co.phone}</td>
-                                        <td style="padding:2px 4px;"><b>팩스번호</b></td>
+                                        <td style="padding:2px 4px;"><b>í©ì¤ë²í¸</b></td>
                                         <td style="padding:2px 4px;">${co.fax||''}</td>
                                     </tr>
                                 </table>
@@ -1044,18 +1058,18 @@ function StatementPage({ data, setData }) {
                         </tr>
                     </table>
                     <div style="border:2px solid #000; padding:6px 12px; margin:6px 0 10px; display:inline-block;">
-                        <b style="font-size:14px;">합계금액 : &nbsp;&nbsp;&nbsp; ${fN(totalAmount)}</b>
+                        <b style="font-size:14px;">í©ê³ê¸ì¡ : &nbsp;&nbsp;&nbsp; ${fN(totalAmount)}</b>
                     </div>
                     <table style="width:100%; border-collapse:collapse; font-size:11px; border:1px solid #000;">
                         <thead>
                             <tr style="background:#f0f0f0;">
-                                <th style="border:1px solid #000; padding:5px; width:60px;">월일</th>
-                                <th style="border:1px solid #000; padding:5px;">품목명/규격</th>
-                                <th style="border:1px solid #000; padding:5px; width:70px;">수량</th>
-                                <th style="border:1px solid #000; padding:5px; width:70px;">단가</th>
-                                <th style="border:1px solid #000; padding:5px; width:90px;">공급가액</th>
-                                <th style="border:1px solid #000; padding:5px; width:80px;">세액</th>
-                                <th style="border:1px solid #000; padding:5px; width:90px;">비고</th>
+                                <th style="border:1px solid #000; padding:5px; width:60px;">ìì¼</th>
+                                <th style="border:1px solid #000; padding:5px;">íëª©ëª/ê·ê²©</th>
+                                <th style="border:1px solid #000; padding:5px; width:70px;">ìë</th>
+                                <th style="border:1px solid #000; padding:5px; width:70px;">ë¨ê°</th>
+                                <th style="border:1px solid #000; padding:5px; width:90px;">ê³µê¸ê°ì¡</th>
+                                <th style="border:1px solid #000; padding:5px; width:80px;">ì¸ì¡</th>
+                                <th style="border:1px solid #000; padding:5px; width:90px;">ë¹ê³ </th>
                             </tr>
                         </thead>
                         <tbody>
@@ -1064,21 +1078,21 @@ function StatementPage({ data, setData }) {
                     </table>
                     <table style="width:100%; border-collapse:collapse; font-size:11px; border:1px solid #000; border-top:none; margin-bottom:0;">
                         <tr>
-                            <td style="border:1px solid #000; padding:5px; width:80px; font-weight:bold; background:#f9f9f9;">전미수잔액</td>
+                            <td style="border:1px solid #000; padding:5px; width:80px; font-weight:bold; background:#f9f9f9;">ì ë¯¸ììì¡</td>
                             <td style="border:1px solid #000; padding:5px; text-align:right; width:130px;">${fN(prevBalance)}</td>
-                            <td style="border:1px solid #000; padding:5px; width:60px; font-weight:bold; background:#f9f9f9;">합계</td>
+                            <td style="border:1px solid #000; padding:5px; width:60px; font-weight:bold; background:#f9f9f9;">í©ê³</td>
                             <td style="border:1px solid #000; padding:5px; text-align:right; width:100px;">${fN(totalSupply)}</td>
                             <td style="border:1px solid #000; padding:5px; text-align:right; width:90px;">${fN(totalTax)}</td>
                             <td style="border:1px solid #000; padding:5px;" colspan="2"></td>
                         </tr>
                         <tr>
-                            <td style="border:1px solid #000; padding:5px; font-weight:bold; background:#f0f0f0;"><b>총합계</b></td>
+                            <td style="border:1px solid #000; padding:5px; font-weight:bold; background:#f0f0f0;"><b>ì´í©ê³</b></td>
                             <td style="border:1px solid #000; padding:5px; text-align:right; font-weight:bold;">${fN(grandTotal)}</td>
-                            <td style="border:1px solid #000; padding:5px; font-weight:bold; background:#f0f0f0;">입금액</td>
+                            <td style="border:1px solid #000; padding:5px; font-weight:bold; background:#f0f0f0;">ìê¸ì¡</td>
                             <td style="border:1px solid #000; padding:5px; text-align:right;">${fN(paidAmt)}</td>
-                            <td style="border:1px solid #000; padding:5px; font-weight:bold; background:#f0f0f0;">총미수잔액</td>
+                            <td style="border:1px solid #000; padding:5px; font-weight:bold; background:#f0f0f0;">ì´ë¯¸ììì¡</td>
                             <td style="border:1px solid #000; padding:5px; text-align:right; font-weight:bold;">${fN(remainBal)}</td>
-                            <td style="border:1px solid #000; padding:5px; font-weight:bold; background:#f0f0f0; text-align:center;">인수자</td>
+                            <td style="border:1px solid #000; padding:5px; font-weight:bold; background:#f0f0f0; text-align:center;">ì¸ìì</td>
                         </tr>
                     </table>
                 </div>
@@ -1087,14 +1101,14 @@ function StatementPage({ data, setData }) {
         };
 
         const printHtml = `<!DOCTYPE html>
-<html><head><meta charset="utf-8"><title>거래명세표 - ${st.statementNo}</title>
+<html><head><meta charset="utf-8"><title>ê±°ëëªì¸í - ${st.statementNo}</title>
 <style>
     @page { size: A4; margin: 15mm 10mm; }
-    body { font-family:'Malgun Gothic','맑은 고딕',sans-serif; margin:0; padding:0; }
+    body { font-family:'Malgun Gothic','ë§ì ê³ ë',sans-serif; margin:0; padding:0; }
     @media print { body { -webkit-print-color-adjust: exact; print-color-adjust: exact; } }
 </style></head><body>
-${makeCopy('공급자 보관용', '#0000cc')}
-${makeCopy('공급받는자 보관용', '#cc0000')}
+${makeCopy('ê³µê¸ì ë³´ê´ì©', '#0000cc')}
+${makeCopy('ê³µê¸ë°ëì ë³´ê´ì©', '#cc0000')}
 </body></html>`;
 
         const w = window.open('', '_blank', 'width=900,height=1200');
@@ -1106,7 +1120,7 @@ ${makeCopy('공급받는자 보관용', '#cc0000')}
     const handleSent = (stId) => {
         const st = statements.find(s => s.id === stId);
         if (st) {
-            st.status = '발송완료';
+            st.status = 'ë°ì¡ìë£';
             st.sentDate = new Date().toISOString().slice(0,10);
             setData({...data});
         }
@@ -1116,43 +1130,43 @@ ${makeCopy('공급받는자 보관용', '#cc0000')}
 
     return (
         <div>
-            <h2 style={{fontSize:'20px', fontWeight:'600', marginBottom:'16px'}}>거래명세서</h2>
+            <h2 style={{fontSize:'20px', fontWeight:'600', marginBottom:'16px'}}>ê±°ëëªì¸ì</h2>
 
             <div className="card">
                 <div className="card-header">
-                    <h3>거래명세서 목록</h3>
+                    <h3>ê±°ëëªì¸ì ëª©ë¡</h3>
                     <button className="btn btn-primary btn-sm" onClick={() => setShowCreateModal(true)}>
-                        <i className="fas fa-plus"></i> 신규 생성
+                        <i className="fas fa-plus"></i> ì ê· ìì±
                     </button>
                 </div>
                 <div className="card-body">
                     <div style={{marginBottom:'16px'}}>
                         <button className={`btn btn-sm ${filter === 'all' ? 'btn-primary' : 'btn-secondary'}`} onClick={() => setFilter('all')} style={{marginRight:'8px'}}>
-                            전체
+                            ì ì²´
                         </button>
-                        <button className={`btn btn-sm ${filter === '생성' ? 'btn-primary' : 'btn-secondary'}`} onClick={() => setFilter('생성')} style={{marginRight:'8px'}}>
-                            생성
+                        <button className={`btn btn-sm ${filter === 'ìì±' ? 'btn-primary' : 'btn-secondary'}`} onClick={() => setFilter('ìì±')} style={{marginRight:'8px'}}>
+                            ìì±
                         </button>
-                        <button className={`btn btn-sm ${filter === '발송완료' ? 'btn-primary' : 'btn-secondary'}`} onClick={() => setFilter('발송완료')}>
-                            발송완료
+                        <button className={`btn btn-sm ${filter === 'ë°ì¡ìë£' ? 'btn-primary' : 'btn-secondary'}`} onClick={() => setFilter('ë°ì¡ìë£')}>
+                            ë°ì¡ìë£
                         </button>
                     </div>
 
                     {filteredStatements.length === 0 ? (
                         <div className="empty-state">
                             <i className="fas fa-file-alt"></i>
-                            <p>거래명세서가 없습니다.</p>
+                            <p>ê±°ëëªì¸ìê° ììµëë¤.</p>
                         </div>
                     ) : (
                         <table>
                             <thead>
                                 <tr>
-                                    <th>명세서 번호</th>
-                                    <th>거래처</th>
-                                    <th>생성일</th>
-                                    <th>발송일</th>
-                                    <th>상태</th>
-                                    <th>액션</th>
+                                    <th>ëªì¸ì ë²í¸</th>
+                                    <th>ê±°ëì²</th>
+                                    <th>ìì±ì¼</th>
+                                    <th>ë°ì¡ì¼</th>
+                                    <th>ìí</th>
+                                    <th>ì¡ì</th>
                                 </tr>
                             </thead>
                             <tbody>
@@ -1162,12 +1176,12 @@ ${makeCopy('공급받는자 보관용', '#cc0000')}
                                         <td>{st.clientName}</td>
                                         <td>{st.createdDate}</td>
                                         <td>{st.sentDate || '-'}</td>
-                                        <td><span className={`badge ${st.status === '발송완료' ? 'badge-green' : 'badge-blue'}`}>{st.status}</span></td>
+                                        <td><span className={`badge ${st.status === 'ë°ì¡ìë£' ? 'badge-green' : 'badge-blue'}`}>{st.status}</span></td>
                                         <td>
                                             <button className="btn btn-sm btn-secondary" onClick={() => handlePrint(st.id)} style={{marginRight:'4px'}}>
                                                 <i className="fas fa-print"></i>
                                             </button>
-                                            {st.status === '생성' && (
+                                            {st.status === 'ìì±' && (
                                                 <button className="btn btn-sm btn-success" onClick={() => handleSent(st.id)}>
                                                     <i className="fas fa-check"></i>
                                                 </button>
@@ -1192,10 +1206,10 @@ ${makeCopy('공급받는자 보관용', '#cc0000')}
                         return (
                         <div key={st.id} className="card">
                             <div className="card-header">
-                                <h3>거래명세표 미리보기 - {st.statementNo}</h3>
+                                <h3>ê±°ëëªì¸í ë¯¸ë¦¬ë³´ê¸° - {st.statementNo}</h3>
                                 <div>
                                     <button className="btn btn-primary btn-sm" onClick={() => handlePrint(st.id)} style={{marginRight:'8px'}}>
-                                        <i className="fas fa-print"></i> 인쇄
+                                        <i className="fas fa-print"></i> ì¸ì
                                     </button>
                                     <button className="btn btn-secondary btn-sm" onClick={() => setSelectedStatementId(null)}>
                                         <i className="fas fa-times"></i>
@@ -1205,29 +1219,29 @@ ${makeCopy('공급받는자 보관용', '#cc0000')}
                             <div className="card-body">
                                 <div style={{display:'grid', gridTemplateColumns:'1fr 1fr', gap:'16px', marginBottom:'16px', fontSize:'13px'}}>
                                     <div>
-                                        <div style={{fontWeight:'600', marginBottom:'6px', color:'var(--primary)'}}>공급받는자 (거래처)</div>
+                                        <div style={{fontWeight:'600', marginBottom:'6px', color:'var(--primary)'}}>ê³µê¸ë°ëì (ê±°ëì²)</div>
                                         <div>{st.clientName}</div>
-                                        {stClient.bizNo && <div style={{fontSize:'11px', color:'var(--gray)'}}>사업자번호: {stClient.bizNo}</div>}
-                                        {stClient.addr && <div style={{fontSize:'11px', color:'var(--gray)'}}>주소: {stClient.addr}</div>}
+                                        {stClient.bizNo && <div style={{fontSize:'11px', color:'var(--gray)'}}>ì¬ììë²í¸: {stClient.bizNo}</div>}
+                                        {stClient.addr && <div style={{fontSize:'11px', color:'var(--gray)'}}>ì£¼ì: {stClient.addr}</div>}
                                     </div>
                                     <div>
-                                        <div style={{fontWeight:'600', marginBottom:'6px', color:'var(--primary)'}}>공급자</div>
+                                        <div style={{fontWeight:'600', marginBottom:'6px', color:'var(--primary)'}}>ê³µê¸ì</div>
                                         <div>{data.company.name}</div>
-                                        <div style={{fontSize:'11px', color:'var(--gray)'}}>사업자번호: {data.company.bizNo}</div>
-                                        <div style={{fontSize:'11px', color:'var(--gray)'}}>대표: {data.company.rep}</div>
+                                        <div style={{fontSize:'11px', color:'var(--gray)'}}>ì¬ììë²í¸: {data.company.bizNo}</div>
+                                        <div style={{fontSize:'11px', color:'var(--gray)'}}>ëí: {data.company.rep}</div>
                                     </div>
                                 </div>
                                 <div style={{background:'var(--primary-light)', padding:'10px 16px', borderRadius:'8px', marginBottom:'16px', fontSize:'16px', fontWeight:'700'}}>
-                                    합계금액: {fmtW(tTotal)}
+                                    í©ê³ê¸ì¡: {fmtW(tTotal)}
                                 </div>
 
                                 <div className="form-row" style={{marginBottom:'12px'}}>
                                     <div className="form-group">
-                                        <label>전미수잔액</label>
+                                        <label>ì ë¯¸ììì¡</label>
                                         <input type="number" value={st.prevBalance||0} onChange={(e) => { st.prevBalance = parseInt(e.target.value)||0; setData({...data}); }} />
                                     </div>
                                     <div className="form-group">
-                                        <label>입금액</label>
+                                        <label>ìê¸ì¡</label>
                                         <input type="number" value={st.paidAmount||0} onChange={(e) => { st.paidAmount = parseInt(e.target.value)||0; setData({...data}); }} />
                                     </div>
                                 </div>
@@ -1235,13 +1249,13 @@ ${makeCopy('공급받는자 보관용', '#cc0000')}
                                 <table>
                                     <thead>
                                         <tr>
-                                            <th>월일</th>
-                                            <th>품목명</th>
-                                            <th>수량</th>
-                                            <th>단가</th>
-                                            <th>공급가액</th>
-                                            <th>세액</th>
-                                            <th>비고(PO)</th>
+                                            <th>ìì¼</th>
+                                            <th>íëª©ëª</th>
+                                            <th>ìë</th>
+                                            <th>ë¨ê°</th>
+                                            <th>ê³µê¸ê°ì¡</th>
+                                            <th>ì¸ì¡</th>
+                                            <th>ë¹ê³ (PO)</th>
                                         </tr>
                                     </thead>
                                     <tbody>
@@ -1259,7 +1273,7 @@ ${makeCopy('공급받는자 보관용', '#cc0000')}
                                     </tbody>
                                     <tfoot>
                                         <tr style={{fontWeight:'600', background:'var(--gray-light)'}}>
-                                            <td colSpan={2}>합계</td>
+                                            <td colSpan={2}>í©ê³</td>
                                             <td style={{textAlign:'right'}}>{fmt(stItems.reduce((s,i)=>s+(i.qty||0),0))}</td>
                                             <td></td>
                                             <td style={{textAlign:'right'}}>{fmtW(tSupply)}</td>
@@ -1270,13 +1284,13 @@ ${makeCopy('공급받는자 보관용', '#cc0000')}
                                 </table>
                                 <div style={{marginTop:'12px', fontSize:'13px', display:'grid', gridTemplateColumns:'repeat(3,1fr)', gap:'8px'}}>
                                     <div style={{background:'#f9f9f9', padding:'8px', borderRadius:'4px'}}>
-                                        <span style={{color:'var(--gray)'}}>전미수잔액:</span> <b>{fmtW(st.prevBalance||0)}</b>
+                                        <span style={{color:'var(--gray)'}}>ì ë¯¸ììì¡:</span> <b>{fmtW(st.prevBalance||0)}</b>
                                     </div>
                                     <div style={{background:'#f9f9f9', padding:'8px', borderRadius:'4px'}}>
-                                        <span style={{color:'var(--gray)'}}>총합계:</span> <b>{fmtW((st.prevBalance||0) + tTotal)}</b>
+                                        <span style={{color:'var(--gray)'}}>ì´í©ê³:</span> <b>{fmtW((st.prevBalance||0) + tTotal)}</b>
                                     </div>
                                     <div style={{background:'#fff3f3', padding:'8px', borderRadius:'4px'}}>
-                                        <span style={{color:'var(--gray)'}}>총미수잔액:</span> <b style={{color:'var(--danger)'}}>{fmtW((st.prevBalance||0) + tTotal - (st.paidAmount||0))}</b>
+                                        <span style={{color:'var(--gray)'}}>ì´ë¯¸ììì¡:</span> <b style={{color:'var(--danger)'}}>{fmtW((st.prevBalance||0) + tTotal - (st.paidAmount||0))}</b>
                                     </div>
                                 </div>
                             </div>
@@ -1290,25 +1304,25 @@ ${makeCopy('공급받는자 보관용', '#cc0000')}
                 <div className="modal-overlay" onClick={() => setShowCreateModal(false)}>
                     <div className="modal" onClick={(e) => e.stopPropagation()}>
                         <div className="modal-header">
-                            <h3>거래명세서 생성</h3>
+                            <h3>ê±°ëëªì¸ì ìì±</h3>
                             <button className="btn btn-secondary btn-sm" onClick={() => setShowCreateModal(false)}>
                                 <i className="fas fa-times"></i>
                             </button>
                         </div>
                         <div className="modal-body">
                             <div className="form-group">
-                                <label>거래처 선택</label>
+                                <label>ê±°ëì² ì í</label>
                                 <select value={newStatement.clientId} onChange={(e) => setNewStatement({...newStatement, clientId: e.target.value})}>
-                                    <option value="">선택해주세요</option>
-                                    {clients.filter(c => c.type === '고객사').map(c => (
+                                    <option value="">ì íí´ì£¼ì¸ì</option>
+                                    {clients.filter(c => c.type === 'ê³ ê°ì¬').map(c => (
                                         <option key={c.id} value={c.id}>{c.name}</option>
                                     ))}
                                 </select>
                             </div>
                         </div>
                         <div className="modal-footer">
-                            <button className="btn btn-secondary" onClick={() => setShowCreateModal(false)}>취소</button>
-                            <button className="btn btn-primary" onClick={handleCreateStatement}>생성</button>
+                            <button className="btn btn-secondary" onClick={() => setShowCreateModal(false)}>ì·¨ì</button>
+                            <button className="btn btn-primary" onClick={handleCreateStatement}>ìì±</button>
                         </div>
                     </div>
                 </div>
@@ -1319,7 +1333,7 @@ ${makeCopy('공급받는자 보관용', '#cc0000')}
 
 // ==================== INVENTORY PAGE ====================
 function InventoryPage({ data, setData }) {
-    const [categoryFilter, setCategoryFilter] = useState('완제품');
+    const [categoryFilter, setCategoryFilter] = useState('ìì í');
     const [showModal, setShowModal] = useState(false);
     const [editItem, setEditItem] = useState(null);
     const [showBulkInput, setShowBulkInput] = useState(false);
@@ -1327,7 +1341,7 @@ function InventoryPage({ data, setData }) {
     const inventory = data.inventory || [];
     const filtered = inventory.filter(i => i.category === categoryFilter);
 
-    const categories = ['완제품', '반제품', '기본부품'];
+    const categories = ['ìì í', 'ë°ì í', 'ê¸°ë³¸ë¶í'];
 
     const handleSave = (item) => {
         if (editItem) {
@@ -1345,7 +1359,7 @@ function InventoryPage({ data, setData }) {
     };
 
     const handleDelete = (id) => {
-        if (confirm('삭제하시겠습니까?')) {
+        if (confirm('ì­ì íìê² ìµëê¹?')) {
             const idx = inventory.findIndex(i => i.id === id);
             if (idx >= 0) inventory.splice(idx, 1);
             setData({...data});
@@ -1354,7 +1368,7 @@ function InventoryPage({ data, setData }) {
 
     return (
         <div>
-            <h2 style={{fontSize:'20px', fontWeight:'600', marginBottom:'16px'}}>재고관리</h2>
+            <h2 style={{fontSize:'20px', fontWeight:'600', marginBottom:'16px'}}>ì¬ê³ ê´ë¦¬</h2>
 
             <div className="category-tabs">
                 {categories.map(cat => (
@@ -1370,13 +1384,13 @@ function InventoryPage({ data, setData }) {
 
             <div className="card">
                 <div className="card-header">
-                    <h3>{categoryFilter} 재고</h3>
+                    <h3>{categoryFilter} ì¬ê³ </h3>
                     <div style={{display:'flex', gap:'8px'}}>
                         <button className="btn btn-secondary btn-sm" onClick={() => setShowBulkInput(true)}>
-                            <i className="fas fa-table"></i> 일괄입력
+                            <i className="fas fa-table"></i> ì¼ê´ìë ¥
                         </button>
                         <button className="btn btn-primary btn-sm" onClick={() => { setEditItem(null); setShowModal(true); }}>
-                            <i className="fas fa-plus"></i> 신규 추가
+                            <i className="fas fa-plus"></i> ì ê· ì¶ê°
                         </button>
                     </div>
                 </div>
@@ -1384,18 +1398,18 @@ function InventoryPage({ data, setData }) {
                     {filtered.length === 0 ? (
                         <div className="empty-state">
                             <i className="fas fa-inbox"></i>
-                            <p>재고가 없습니다.</p>
+                            <p>ì¬ê³ ê° ììµëë¤.</p>
                         </div>
                     ) : (
                         <table>
                             <thead>
                                 <tr>
-                                    <th>제품코드</th>
-                                    <th>제품명</th>
-                                    <th>수량</th>
-                                    <th>위치</th>
-                                    <th>비고</th>
-                                    <th>액션</th>
+                                    <th>ì íì½ë</th>
+                                    <th>ì íëª</th>
+                                    <th>ìë</th>
+                                    <th>ìì¹</th>
+                                    <th>ë¹ê³ </th>
+                                    <th>ì¡ì</th>
                                 </tr>
                             </thead>
                             <tbody>
@@ -1429,52 +1443,52 @@ function InventoryPage({ data, setData }) {
 }
 
 function InventoryModal({ item, categories, onSave, onClose }) {
-    const [form, setForm] = useState(item || { category:'완제품', code:'', name:'', qty:0, location:'', notes:'' });
+    const [form, setForm] = useState(item || { category:'ìì í', code:'', name:'', qty:0, location:'', notes:'' });
 
     return (
         <div className="modal-overlay" onClick={onClose}>
             <div className="modal" onClick={(e) => e.stopPropagation()}>
                 <div className="modal-header">
-                    <h3>{item ? '재고 수정' : '재고 추가'}</h3>
+                    <h3>{item ? 'ì¬ê³  ìì ' : 'ì¬ê³  ì¶ê°'}</h3>
                     <button className="btn btn-secondary btn-sm" onClick={onClose}>
                         <i className="fas fa-times"></i>
                     </button>
                 </div>
                 <div className="modal-body">
                     <div className="form-group">
-                        <label>분류</label>
+                        <label>ë¶ë¥</label>
                         <select value={form.category} onChange={(e) => setForm({...form, category: e.target.value})}>
                             {categories.map(c => <option key={c} value={c}>{c}</option>)}
                         </select>
                     </div>
                     <div className="form-row">
                         <div className="form-group">
-                            <label>제품/부품코드</label>
-                            <input type="text" value={form.code} onChange={(e) => setForm({...form, code: e.target.value})} placeholder="예: LCDM-1000" />
+                            <label>ì í/ë¶íì½ë</label>
+                            <input type="text" value={form.code} onChange={(e) => setForm({...form, code: e.target.value})} placeholder="ì: LCDM-1000" />
                         </div>
                         <div className="form-group">
-                            <label>제품/부품명</label>
-                            <input type="text" value={form.name} onChange={(e) => setForm({...form, name: e.target.value})} placeholder="제품명" />
+                            <label>ì í/ë¶íëª</label>
+                            <input type="text" value={form.name} onChange={(e) => setForm({...form, name: e.target.value})} placeholder="ì íëª" />
                         </div>
                     </div>
                     <div className="form-row">
                         <div className="form-group">
-                            <label>수량</label>
+                            <label>ìë</label>
                             <input type="number" value={form.qty} onChange={(e) => setForm({...form, qty: parseInt(e.target.value) || 0})} />
                         </div>
                         <div className="form-group">
-                            <label>위치</label>
-                            <input type="text" value={form.location} onChange={(e) => setForm({...form, location: e.target.value})} placeholder="예: A-01" />
+                            <label>ìì¹</label>
+                            <input type="text" value={form.location} onChange={(e) => setForm({...form, location: e.target.value})} placeholder="ì: A-01" />
                         </div>
                     </div>
                     <div className="form-group">
-                        <label>비고</label>
+                        <label>ë¹ê³ </label>
                         <textarea value={form.notes} onChange={(e) => setForm({...form, notes: e.target.value})} />
                     </div>
                 </div>
                 <div className="modal-footer">
-                    <button className="btn btn-secondary" onClick={onClose}>취소</button>
-                    <button className="btn btn-primary" onClick={() => onSave(form)}>저장</button>
+                    <button className="btn btn-secondary" onClick={onClose}>ì·¨ì</button>
+                    <button className="btn btn-primary" onClick={() => onSave(form)}>ì ì¥</button>
                 </div>
             </div>
         </div>
@@ -1486,18 +1500,18 @@ function BulkInventoryInput({ category, onClose }) {
         <div className="modal-overlay" onClick={onClose}>
             <div className="modal" onClick={(e) => e.stopPropagation()}>
                 <div className="modal-header">
-                    <h3>{category} 일괄입력</h3>
+                    <h3>{category} ì¼ê´ìë ¥</h3>
                     <button className="btn btn-secondary btn-sm" onClick={onClose}>
                         <i className="fas fa-times"></i>
                     </button>
                 </div>
                 <div className="modal-body">
                     <p style={{color:'var(--gray)', fontSize:'12px', marginBottom:'16px'}}>
-                        Excel 파일을 업로드하거나 데이터를 붙여넣기로 입력하세요. 필수 항목: 코드, 제품명, 수량, 위치
+                        Excel íì¼ì ìë¡ëíê±°ë ë°ì´í°ë¥¼ ë¶ì¬ë£ê¸°ë¡ ìë ¥íì¸ì. íì í­ëª©: ì½ë, ì íëª, ìë, ìì¹
                     </p>
                     <div className="upload-zone">
                         <i className="fas fa-cloud-upload-alt"></i>
-                        <p>파일을 드래그하거나 클릭하여 업로드</p>
+                        <p>íì¼ì ëëê·¸íê±°ë í´ë¦­íì¬ ìë¡ë</p>
                         <p className="sub">Excel (.xlsx, .xls, .csv)</p>
                     </div>
                 </div>
@@ -1535,7 +1549,7 @@ function MoldAndDrawingPage({ data, setData }) {
     };
 
     const handleDeleteMold = (id) => {
-        if (confirm('삭제하시겠습니까?')) {
+        if (confirm('ì­ì íìê² ìµëê¹?')) {
             const idx = molds.findIndex(m => m.id === id);
             if (idx >= 0) molds.splice(idx, 1);
             setData({...data});
@@ -1544,14 +1558,14 @@ function MoldAndDrawingPage({ data, setData }) {
 
     return (
         <div>
-            <h2 style={{fontSize:'20px', fontWeight:'600', marginBottom:'16px'}}>금형/도면관리</h2>
+            <h2 style={{fontSize:'20px', fontWeight:'600', marginBottom:'16px'}}>ê¸í/ëë©´ê´ë¦¬</h2>
 
             <div className="tab-bar">
                 <div className={`tab ${tab === 'molds' ? 'active' : ''}`} onClick={() => setTab('molds')}>
-                    <i className="fas fa-cube"></i> 금형 현황
+                    <i className="fas fa-cube"></i> ê¸í íí©
                 </div>
                 <div className={`tab ${tab === 'drawings' ? 'active' : ''}`} onClick={() => setTab('drawings')}>
-                    <i className="fas fa-file-alt"></i> 도면 파일
+                    <i className="fas fa-file-alt"></i> ëë©´ íì¼
                 </div>
             </div>
 
@@ -1559,22 +1573,22 @@ function MoldAndDrawingPage({ data, setData }) {
                 <div>
                     <div className="card">
                         <div className="card-header">
-                            <h3>금형 보관 현황</h3>
+                            <h3>ê¸í ë³´ê´ íí©</h3>
                         </div>
                         <div className="card-body">
                             <table>
                                 <thead>
                                     <tr>
-                                        <th>보관처</th>
-                                        <th>금형 개수</th>
-                                        <th>비고</th>
+                                        <th>ë³´ê´ì²</th>
+                                        <th>ê¸í ê°ì</th>
+                                        <th>ë¹ê³ </th>
                                     </tr>
                                 </thead>
                                 <tbody>
                                     {moldStatus.map((ms, idx) => (
                                         <tr key={idx}>
                                             <td>{ms.location}</td>
-                                            <td style={{fontWeight:'600'}}>{ms.count}개</td>
+                                            <td style={{fontWeight:'600'}}>{ms.count}ê°</td>
                                             <td>{ms.notes}</td>
                                         </tr>
                                     ))}
@@ -1585,11 +1599,11 @@ function MoldAndDrawingPage({ data, setData }) {
 
                     <div className="card">
                         <div className="card-header">
-                            <h3>금형 목록</h3>
+                            <h3>ê¸í ëª©ë¡</h3>
                             <div style={{display:'flex', gap:'8px'}}>
-                                <input type="text" placeholder="검색..." value={search} onChange={(e) => setSearch(e.target.value)} style={{width:'200px'}} />
+                                <input type="text" placeholder="ê²ì..." value={search} onChange={(e) => setSearch(e.target.value)} style={{width:'200px'}} />
                                 <button className="btn btn-primary btn-sm" onClick={() => { setEditMold(null); setShowModal(true); }}>
-                                    <i className="fas fa-plus"></i> 추가
+                                    <i className="fas fa-plus"></i> ì¶ê°
                                 </button>
                             </div>
                         </div>
@@ -1597,18 +1611,18 @@ function MoldAndDrawingPage({ data, setData }) {
                             {filteredMolds.length === 0 ? (
                                 <div className="empty-state">
                                     <i className="fas fa-cube"></i>
-                                    <p>금형이 없습니다.</p>
+                                    <p>ê¸íì´ ììµëë¤.</p>
                                 </div>
                             ) : (
                                 <table>
                                     <thead>
                                         <tr>
-                                            <th>금형명</th>
-                                            <th>금형코드</th>
-                                            <th>재질</th>
-                                            <th>보관처</th>
-                                            <th>상태</th>
-                                            <th>액션</th>
+                                            <th>ê¸íëª</th>
+                                            <th>ê¸íì½ë</th>
+                                            <th>ì¬ì§</th>
+                                            <th>ë³´ê´ì²</th>
+                                            <th>ìí</th>
+                                            <th>ì¡ì</th>
                                         </tr>
                                     </thead>
                                     <tbody>
@@ -1618,7 +1632,7 @@ function MoldAndDrawingPage({ data, setData }) {
                                                 <td>{m.code}</td>
                                                 <td>{m.material}</td>
                                                 <td>{m.location}</td>
-                                                <td><span className={`badge ${m.status === '정상' ? 'badge-green' : 'badge-yellow'}`}>{m.status}</span></td>
+                                                <td><span className={`badge ${m.status === 'ì ì' ? 'badge-green' : 'badge-yellow'}`}>{m.status}</span></td>
                                                 <td>
                                                     <button className="btn btn-sm btn-secondary" onClick={() => { setEditMold(m); setShowModal(true); }} style={{marginRight:'4px'}}>
                                                         <i className="fas fa-edit"></i>
@@ -1640,24 +1654,24 @@ function MoldAndDrawingPage({ data, setData }) {
             {tab === 'drawings' && (
                 <div className="card">
                     <div className="card-header">
-                        <h3>도면 파일 목록</h3>
-                        <input type="text" placeholder="검색..." value={search} onChange={(e) => setSearch(e.target.value)} style={{width:'200px'}} />
+                        <h3>ëë©´ íì¼ ëª©ë¡</h3>
+                        <input type="text" placeholder="ê²ì..." value={search} onChange={(e) => setSearch(e.target.value)} style={{width:'200px'}} />
                     </div>
                     <div className="card-body">
                         {filteredDrawings.length === 0 ? (
                             <div className="empty-state">
                                 <i className="fas fa-file-alt"></i>
-                                <p>도면이 없습니다.</p>
+                                <p>ëë©´ì´ ììµëë¤.</p>
                             </div>
                         ) : (
                             <table>
                                 <thead>
                                     <tr>
-                                        <th>파일명</th>
-                                        <th>유형</th>
-                                        <th>관련 제품</th>
-                                        <th>모델</th>
-                                        <th>액션</th>
+                                        <th>íì¼ëª</th>
+                                        <th>ì í</th>
+                                        <th>ê´ë ¨ ì í</th>
+                                        <th>ëª¨ë¸</th>
+                                        <th>ì¡ì</th>
                                     </tr>
                                 </thead>
                                 <tbody>
@@ -1669,7 +1683,7 @@ function MoldAndDrawingPage({ data, setData }) {
                                             <td>{d.model}</td>
                                             <td>
                                                 <button className="btn btn-sm btn-secondary">
-                                                    <i className="fas fa-download"></i> 다운로드
+                                                    <i className="fas fa-download"></i> ë¤ì´ë¡ë
                                                 </button>
                                             </td>
                                         </tr>
@@ -1687,47 +1701,47 @@ function MoldAndDrawingPage({ data, setData }) {
 }
 
 function MoldModal({ mold, onSave, onClose }) {
-    const [form, setForm] = useState(mold || { name:'', code:'', material:'', location:'', status:'정상' });
+    const [form, setForm] = useState(mold || { name:'', code:'', material:'', location:'', status:'ì ì' });
 
     return (
         <div className="modal-overlay" onClick={onClose}>
             <div className="modal" onClick={(e) => e.stopPropagation()}>
                 <div className="modal-header">
-                    <h3>{mold ? '금형 수정' : '금형 추가'}</h3>
+                    <h3>{mold ? 'ê¸í ìì ' : 'ê¸í ì¶ê°'}</h3>
                     <button className="btn btn-secondary btn-sm" onClick={onClose}>
                         <i className="fas fa-times"></i>
                     </button>
                 </div>
                 <div className="modal-body">
                     <div className="form-group">
-                        <label>금형명</label>
+                        <label>ê¸íëª</label>
                         <input type="text" value={form.name} onChange={(e) => setForm({...form, name: e.target.value})} />
                     </div>
                     <div className="form-group">
-                        <label>금형코드</label>
+                        <label>ê¸íì½ë</label>
                         <input type="text" value={form.code} onChange={(e) => setForm({...form, code: e.target.value})} />
                     </div>
                     <div className="form-group">
-                        <label>재질</label>
+                        <label>ì¬ì§</label>
                         <input type="text" value={form.material} onChange={(e) => setForm({...form, material: e.target.value})} />
                     </div>
                     <div className="form-group">
-                        <label>보관처</label>
+                        <label>ë³´ê´ì²</label>
                         <input type="text" value={form.location} onChange={(e) => setForm({...form, location: e.target.value})} />
                     </div>
                     <div className="form-group">
-                        <label>상태</label>
+                        <label>ìí</label>
                         <select value={form.status} onChange={(e) => setForm({...form, status: e.target.value})}>
-                            <option value="정상">정상</option>
-                            <option value="손상">손상</option>
-                            <option value="분실">분실</option>
-                            <option value="이관">이관</option>
+                            <option value="ì ì">ì ì</option>
+                            <option value="ìì">ìì</option>
+                            <option value="ë¶ì¤">ë¶ì¤</option>
+                            <option value="ì´ê´">ì´ê´</option>
                         </select>
                     </div>
                 </div>
                 <div className="modal-footer">
-                    <button className="btn btn-secondary" onClick={onClose}>취소</button>
-                    <button className="btn btn-primary" onClick={() => onSave(form)}>저장</button>
+                    <button className="btn btn-secondary" onClick={onClose}>ì·¨ì</button>
+                    <button className="btn btn-primary" onClick={() => onSave(form)}>ì ì¥</button>
                 </div>
             </div>
         </div>
@@ -1763,7 +1777,7 @@ function OrdersPage({ data, setData }) {
     };
 
     const handleDelete = (id) => {
-        if (confirm('삭제하시겠습니까?')) {
+        if (confirm('ì­ì íìê² ìµëê¹?')) {
             const idx = orders.findIndex(o => o.id === id);
             if (idx >= 0) orders.splice(idx, 1);
             setData({...data});
@@ -1772,22 +1786,22 @@ function OrdersPage({ data, setData }) {
 
     return (
         <div>
-            <h2 style={{fontSize:'20px', fontWeight:'600', marginBottom:'16px'}}>발주확인/처리</h2>
+            <h2 style={{fontSize:'20px', fontWeight:'600', marginBottom:'16px'}}>ë°ì£¼íì¸/ì²ë¦¬</h2>
 
             <div className="card">
                 <div className="card-header">
                     <div style={{display:'flex', gap:'8px', alignItems:'center', flex:'1'}}>
-                        <input type="text" placeholder="발주번호, 업체, 제품명..." value={search} onChange={(e) => setSearch(e.target.value)} style={{maxWidth:'300px'}} />
+                        <input type="text" placeholder="ë°ì£¼ë²í¸, ìì²´, ì íëª..." value={search} onChange={(e) => setSearch(e.target.value)} style={{maxWidth:'300px'}} />
                     </div>
                     <button className="btn btn-primary btn-sm" onClick={() => { setEditOrder(null); setShowModal(true); }}>
-                        <i className="fas fa-plus"></i> 신규 발주
+                        <i className="fas fa-plus"></i> ì ê· ë°ì£¼
                     </button>
                 </div>
                 <div className="card-body">
                     <div style={{marginBottom:'16px', display:'flex', gap:'8px'}}>
-                        {['all', '대기', '진행중', '납기초과', '출하완료'].map(s => (
+                        {['all', 'ëê¸°', 'ì§íì¤', 'ë©ê¸°ì´ê³¼', 'ì¶íìë£'].map(s => (
                             <button key={s} className={`btn btn-sm ${filter === s ? 'btn-primary' : 'btn-secondary'}`} onClick={() => setFilter(s)}>
-                                {s === 'all' ? '전체' : s}
+                                {s === 'all' ? 'ì ì²´' : s}
                             </button>
                         ))}
                     </div>
@@ -1795,21 +1809,21 @@ function OrdersPage({ data, setData }) {
                     {filtered.length === 0 ? (
                         <div className="empty-state">
                             <i className="fas fa-inbox"></i>
-                            <p>발주 내역이 없습니다.</p>
+                            <p>ë°ì£¼ ë´ì­ì´ ììµëë¤.</p>
                         </div>
                     ) : (
                         <table>
                             <thead>
                                 <tr>
-                                    <th>발주일</th>
-                                    <th>발주번호</th>
-                                    <th>업체</th>
-                                    <th>제품</th>
-                                    <th>수량</th>
-                                    <th>납기일</th>
-                                    <th>출하일</th>
-                                    <th>상태</th>
-                                    <th>액션</th>
+                                    <th>ë°ì£¼ì¼</th>
+                                    <th>ë°ì£¼ë²í¸</th>
+                                    <th>ìì²´</th>
+                                    <th>ì í</th>
+                                    <th>ìë</th>
+                                    <th>ë©ê¸°ì¼</th>
+                                    <th>ì¶íì¼</th>
+                                    <th>ìí</th>
+                                    <th>ì¡ì</th>
                                 </tr>
                             </thead>
                             <tbody>
@@ -1824,9 +1838,9 @@ function OrdersPage({ data, setData }) {
                                         <td>{fmtDate(o.shipDate)}</td>
                                         <td>
                                             <span className={`badge ${
-                                                o.status === '출하완료' ? 'badge-green' :
-                                                o.status === '납기초과' ? 'badge-red' :
-                                                o.status === '진행중' ? 'badge-blue' : 'badge-gray'
+                                                o.status === 'ì¶íìë£' ? 'badge-green' :
+                                                o.status === 'ë©ê¸°ì´ê³¼' ? 'badge-red' :
+                                                o.status === 'ì§íì¤' ? 'badge-blue' : 'badge-gray'
                                             }`}>{o.status}</span>
                                         </td>
                                         <td style={{whiteSpace:'nowrap'}}>
@@ -1863,7 +1877,7 @@ function OrderModal({ order, clients, onSave, onClose }) {
         lotNo: '',
         invoiceDate: '',
         notes: '',
-        status: '대기',
+        status: 'ëê¸°',
         trackingNo: '',
     });
 
@@ -1871,7 +1885,7 @@ function OrderModal({ order, clients, onSave, onClose }) {
         <div className="modal-overlay" onClick={onClose}>
             <div className="modal" onClick={(e) => e.stopPropagation()}>
                 <div className="modal-header">
-                    <h3>{order ? '발주 수정' : '발주 신규 추가'}</h3>
+                    <h3>{order ? 'ë°ì£¼ ìì ' : 'ë°ì£¼ ì ê· ì¶ê°'}</h3>
                     <button className="btn btn-secondary btn-sm" onClick={onClose}>
                         <i className="fas fa-times"></i>
                     </button>
@@ -1879,82 +1893,285 @@ function OrderModal({ order, clients, onSave, onClose }) {
                 <div className="modal-body">
                     <div className="form-row">
                         <div className="form-group">
-                            <label>발주일</label>
+                            <label>ë°ì£¼ì¼</label>
                             <input type="date" value={form.orderDate} onChange={(e) => setForm({...form, orderDate: e.target.value})} />
                         </div>
                         <div className="form-group">
-                            <label>납기일</label>
+                            <label>ë©ê¸°ì¼</label>
                             <input type="date" value={form.dueDate} onChange={(e) => setForm({...form, dueDate: e.target.value})} />
                         </div>
                     </div>
                     <div className="form-row">
                         <div className="form-group">
-                            <label>출하일</label>
+                            <label>ì¶íì¼</label>
                             <input type="date" value={form.shipDate} onChange={(e) => setForm({...form, shipDate: e.target.value})} />
                         </div>
                         <div className="form-group">
-                            <label>송장번호</label>
+                            <label>ì¡ì¥ë²í¸</label>
                             <input type="text" value={form.trackingNo} onChange={(e) => setForm({...form, trackingNo: e.target.value})} />
                         </div>
                     </div>
                     <div className="form-row">
                         <div className="form-group">
-                            <label>업체</label>
+                            <label>ìì²´</label>
                             <select value={form.client} onChange={(e) => setForm({...form, client: e.target.value})}>
-                                <option value="">선택해주세요</option>
-                                {clients.filter(c => c.type === '고객사').map(c => (
+                                <option value="">ì íí´ì£¼ì¸ì</option>
+                                {clients.filter(c => c.type === 'ê³ ê°ì¬').map(c => (
                                     <option key={c.id} value={c.name}>{c.name}</option>
                                 ))}
                             </select>
                         </div>
                         <div className="form-group">
-                            <label>발주번호</label>
+                            <label>ë°ì£¼ë²í¸</label>
                             <input type="text" value={form.orderNo} onChange={(e) => setForm({...form, orderNo: e.target.value})} />
                         </div>
                     </div>
                     <div className="form-group">
-                        <label>업체 품명</label>
+                        <label>ìì²´ íëª</label>
                         <input type="text" value={form.clientProduct} onChange={(e) => setForm({...form, clientProduct: e.target.value})} />
                     </div>
                     <div className="form-row">
                         <div className="form-group">
-                            <label>엘맥스텍 품명</label>
+                            <label>ìë§¥ì¤í íëª</label>
                             <input type="text" value={form.product} onChange={(e) => setForm({...form, product: e.target.value})} />
                         </div>
                         <div className="form-group">
-                            <label>발주수량</label>
+                            <label>ë°ì£¼ìë</label>
                             <input type="number" value={form.qty} onChange={(e) => setForm({...form, qty: parseInt(e.target.value) || 0})} />
                         </div>
                     </div>
                     <div className="form-row">
                         <div className="form-group">
-                            <label>로트번호</label>
+                            <label>ë¡í¸ë²í¸</label>
                             <input type="text" value={form.lotNo} onChange={(e) => setForm({...form, lotNo: e.target.value})} />
                         </div>
                         <div className="form-group">
-                            <label>세금계산서 발행일자</label>
+                            <label>ì¸ê¸ê³ì°ì ë°íì¼ì</label>
                             <input type="date" value={form.invoiceDate} onChange={(e) => setForm({...form, invoiceDate: e.target.value})} />
                         </div>
                     </div>
                     <div className="form-group">
-                        <label>상태</label>
+                        <label>ìí</label>
                         <select value={form.status} onChange={(e) => setForm({...form, status: e.target.value})}>
-                            <option value="대기">대기</option>
-                            <option value="진행중">진행중</option>
-                            <option value="납기초과">납기초과</option>
-                            <option value="출하완료">출하완료</option>
+                            <option value="ëê¸°">ëê¸°</option>
+                            <option value="ì§íì¤">ì§íì¤</option>
+                            <option value="ë©ê¸°ì´ê³¼">ë©ê¸°ì´ê³¼</option>
+                            <option value="ì¶íìë£">ì¶íìë£</option>
                         </select>
                     </div>
                     <div className="form-group">
-                        <label>비고</label>
+                        <label>ë¹ê³ </label>
                         <textarea value={form.notes} onChange={(e) => setForm({...form, notes: e.target.value})} />
                     </div>
                 </div>
                 <div className="modal-footer">
-                    <button className="btn btn-secondary" onClick={onClose}>취소</button>
-                    <button className="btn btn-primary" onClick={() => onSave(form)}>저장</button>
+                    <button className="btn btn-secondary" onClick={onClose}>ì·¨ì</button>
+                    <button className="btn btn-primary" onClick={() => onSave(form)}>ì ì¥</button>
                 </div>
             </div>
+        </div>
+    );
+}
+
+// ==================== USER MANAGEMENT PAGE ====================
+function UserManagementPage({ currentUser }) {
+    const [users, setUsersState] = useState(getUsers());
+    const [editId, setEditId] = useState(null);
+    const [editData, setEditData] = useState({});
+    const [showAdd, setShowAdd] = useState(false);
+    const [newUser, setNewUser] = useState({ id: '', name: '', role: 'staff', password: '' });
+    const [msg, setMsg] = useState('');
+
+    const updateUsers = (updated) => {
+        USERS = updated;
+        saveUsers(updated);
+        setUsersState({...updated});
+    };
+
+    const handleEdit = (uid) => {
+        setEditId(uid);
+        setEditData({ name: users[uid].name, role: users[uid].role, password: '' });
+    };
+
+    const handleSave = () => {
+        if (!editId) return;
+        const updated = {...users};
+        updated[editId] = {
+            ...updated[editId],
+            name: editData.name || updated[editId].name,
+            role: editData.role || updated[editId].role,
+        };
+        if (editData.password && editData.password.trim()) {
+            updated[editId].password = editData.password.trim();
+        }
+        updateUsers(updated);
+        setEditId(null);
+        setMsg('저장되었습니다.');
+        setTimeout(() => setMsg(''), 2000);
+    };
+
+    const handleDelete = (uid) => {
+        if (uid === currentUser.id) {
+            alert('현재 로그인된 계정은 삭제할 수 없습니다.');
+            return;
+        }
+        if (uid === 'kimjs') {
+            alert('대표 계정은 삭제할 수 없습니다.');
+            return;
+        }
+        if (!confirm(users[uid].name + ' 계정을 삭제하시겠습니까?')) return;
+        const updated = {...users};
+        delete updated[uid];
+        updateUsers(updated);
+    };
+
+    const handleAdd = () => {
+        if (!newUser.id || !newUser.name || !newUser.password) {
+            alert('모든 항목을 입력해주세요.');
+            return;
+        }
+        if (users[newUser.id]) {
+            alert('이미 존재하는 ID입니다.');
+            return;
+        }
+        const updated = {...users};
+        updated[newUser.id] = { name: newUser.name, role: newUser.role, password: newUser.password };
+        updateUsers(updated);
+        setNewUser({ id: '', name: '', role: 'staff', password: '' });
+        setShowAdd(false);
+        setMsg('새 사용자가 추가되었습니다.');
+        setTimeout(() => setMsg(''), 2000);
+    };
+
+    const roleLabel = (r) => r === 'admin' ? '관리자' : '일반직원';
+    const roleBadge = (r) => r === 'admin' ? 'badge-blue' : 'badge-gray';
+
+    return (
+        <div>
+            <h2 style={{fontSize:'20px', fontWeight:'600', marginBottom:'16px'}}>사용자 관리</h2>
+
+            {msg && <div style={{background:'var(--secondary-light)', color:'var(--secondary)', padding:'10px 16px', borderRadius:'6px', marginBottom:'16px', fontSize:'13px'}}><i className="fas fa-check-circle"></i> {msg}</div>}
+
+            <div className="card">
+                <div className="card-header">
+                    <h3>등록된 사용자</h3>
+                    <button className="btn btn-primary btn-sm" onClick={() => setShowAdd(true)}>
+                        <i className="fas fa-user-plus"></i> 사용자 추가
+                    </button>
+                </div>
+                <div className="card-body">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>ID</th>
+                                <th>이름 (직책)</th>
+                                <th>접속권한</th>
+                                <th>비밀번호</th>
+                                <th>관리</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {Object.keys(users).map(uid => (
+                                <tr key={uid}>
+                                    <td style={{fontWeight:'600'}}>{uid}</td>
+                                    <td>
+                                        {editId === uid ? (
+                                            <input type="text" value={editData.name} onChange={(e) => setEditData({...editData, name: e.target.value})} style={{width:'100%', padding:'4px 8px', fontSize:'13px'}} />
+                                        ) : users[uid].name}
+                                    </td>
+                                    <td>
+                                        {editId === uid ? (                            <select value={editData.role} onChange={(e) => setEditData({...editData, role: e.target.value})} style={{padding:'4px 8px', fontSize:'13px'}}>
+                                                <option value="admin">관리자</option>
+                                                <option value="staff">일반직원</option>
+                                            </select>
+                                        ) : (
+                                            <span className={`badge ${roleBadge(users[uid].role)}`}>{roleLabel(users[uid].role)}</span>
+                                        )}
+                                    </td>
+                                    <td>
+                                        {editId === uid ? (
+                                            <input type="text" value={editData.password} onChange={(e) => setEditData({...editData, password: e.target.value})} placeholder="변경시 입력" style={{width:'100%', padding:'4px 8px', fontSize:'13px'}} />
+                                        ) : '••••'}
+                                    </td>
+                                    <td>
+                                        {editId === uid ? (
+                                            <div style={{display:'flex', gap:'4px'}}>
+                                                <button className="btn btn-success btn-sm" onClick={handleSave}><i className="fas fa-check"></i></button>
+                                                <button className="btn btn-secondary btn-sm" onClick={() => setEditId(null)}><i className="fas fa-times"></i></button>
+                                            </div>
+                                        ) : (
+                                            <div style={{display:'flex', gap:'4px'}}>
+                                                <button className="btn btn-secondary btn-sm" onClick={() => handleEdit(uid)}><i className="fas fa-edit"></i></button>
+                                                {uid !== 'kimjs' && uid !== currentUser.id && (
+                                                    <button className="btn btn-sm" style={{background:'var(--danger-light)', color:'var(--danger)'}} onClick={() => handleDelete(uid)}><i className="fas fa-trash"></i></button>
+                                                )}
+                                            </div>
+                                        )}
+                                    </td>
+                                </tr>
+                            ))}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <div className="card" style={{marginTop:'16px'}}>
+                <div className="card-header"><h3>접속권한 안내</h3></div>
+                <div className="card-body" style={{fontSize:'13px'}}>
+                    <div style={{display:'grid', gridTemplateColumns:'1fr 1fr', gap:'16px'}}>
+                        <div>
+                            <div style={{fontWeight:'600', marginBottom:'8px', color:'var(--primary)'}}>
+                                <span className="badge badge-blue">관리자</span> 접근 가능 메뉴
+                            </div>
+                            <div style={{color:'var(--gray)'}}>모든 메뉴 접근 가능 (대시보드, 현금흐름, 재무회계, 사용자관리 포함)</div>
+                        </div>
+                        <div>
+                            <div style={{fontWeight:'600', marginBottom:'8px', color:'var(--gray)'}}>
+                                <span className="badge badge-gray">일반직원</span> 접근 가능 메뉴
+                            </div>
+                            <div style={{color:'var(--gray)'}}>발주확인/처리, 업무지시서, 거래명세서, 재고관리, 거래처관리, 제품관리, 금형/도면관리</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            {showAdd && (
+                <div className="modal-overlay" onClick={() => setShowAdd(false)}>
+                    <div className="modal" onClick={(e) => e.stopPropagation()}>
+                        <div className="modal-header">
+                            <h3>새 사용자 추가</h3>
+                            <button className="btn btn-secondary btn-sm" onClick={() => setShowAdd(false)}>
+                                <i className="fas fa-times"></i>
+                            </button>
+                        </div>
+                        <div className="modal-body">
+                            <div className="form-group">
+                                <label>사용자 ID</label>
+                                <input type="text" value={newUser.id} onChange={(e) => setNewUser({...newUser, id: e.target.value})} placeholder="영문 소문자 (예: hongkd)" />
+                            </div>
+                            <div className="form-group">
+                                <label>이름 (직책)</label>
+                                <input type="text" value={newUser.name} onChange={(e) => setNewUser({...newUser, name: e.target.value})} placeholder="예: 홍길동 (부장)" />
+                            </div>
+                            <div className="form-group">
+                                <label>접속권한</label>
+                                <select value={newUser.role} onChange={(e) => setNewUser({...newUser, role: e.target.value})}>
+                                    <option value="staff">일반직원</option>
+                                    <option value="admin">관리자</option>
+                                </select>
+                            </div>
+                            <div className="form-group">
+                                <label>비밀번호</label>
+                                <input type="text" value={newUser.password} onChange={(e) => setNewUser({...newUser, password: e.target.value})} placeholder="초기 비밀번호 입력" />
+                            </div>
+                        </div>
+                        <div className="modal-footer">
+                            <button className="btn btn-secondary" onClick={() => setShowAdd(false)}>취소</button>
+                            <button className="btn btn-primary" onClick={handleAdd}>추가</button>
+                        </div>
+                    </div>
+                </div>
+            )}
         </div>
     );
 }
@@ -1972,7 +2189,7 @@ function App() {
     }, [data]);
 
     const handleLogout = () => {
-        if (confirm('로그아웃하시겠습니까?')) {
+        if (confirm('ë¡ê·¸ììíìê² ìµëê¹?')) {
             setUser(null);
             setPage('dashboard');
         }
@@ -1981,17 +2198,17 @@ function App() {
     if (!user) return <LoginPage onLogin={setUser} />;
 
     const menuItems = [
-        { id: 'dashboard', label: '대시보드', icon: 'fa-chart-line', adminOnly: true },
-        { id: 'cashflow', label: '현금흐름', icon: 'fa-water', adminOnly: true },
-        { id: 'finance', label: '재무회계', icon: 'fa-calculator', adminOnly: true },
-        { id: 'orders', label: '발주확인/처리', icon: 'fa-boxes' },
-        { id: 'workorder', label: '업무지시서', icon: 'fa-tasks' },
-        { id: 'statement', label: '거래명세서', icon: 'fa-file-alt' },
+        { id: 'dashboard', label: 'ëìë³´ë', icon: 'fa-chart-line', adminOnly: true },
+        { id: 'cashflow', label: 'íê¸íë¦', icon: 'fa-water', adminOnly: true },
+        { id: 'finance', label: 'ì¬ë¬´íê³', icon: 'fa-calculator', adminOnly: true },
+        { id: 'orders', label: 'ë°ì£¼íì¸/ì²ë¦¬', icon: 'fa-boxes' },
+        { id: 'workorder', label: 'ìë¬´ì§ìì', icon: 'fa-tasks' },
+        { id: 'statement', label: 'ê±°ëëªì¸ì', icon: 'fa-file-alt' },
         null,
-        { id: 'inventory', label: '재고관리', icon: 'fa-warehouse' },
-        { id: 'clients', label: '거래처관리', icon: 'fa-building' },
-        { id: 'products', label: '제품관리', icon: 'fa-cubes' },
-        { id: 'molds', label: '금형/도면관리', icon: 'fa-cube' },
+        { id: 'inventory', label: 'ì¬ê³ ê´ë¦¬', icon: 'fa-warehouse' },
+        { id: 'clients', label: 'ê±°ëì²ê´ë¦¬', icon: 'fa-building' },
+        { id: 'products', label: 'ì íê´ë¦¬', icon: 'fa-cubes' },
+        { id: 'molds', label: 'ê¸í/ëë©´ê´ë¦¬', icon: 'fa-cube' },
     ];
 
     return (
@@ -1999,13 +2216,13 @@ function App() {
             <div className="sidebar">
                 <div className="sidebar-header">
                     <div className="sidebar-header-info">
-                        <h2>엘맥스텍</h2>
-                        <p>행정업무 대시보드</p>
+                        <h2>ìë§¥ì¤í</h2>
+                        <p>íì ìë¬´ ëìë³´ë</p>
                     </div>
                 </div>
 
                 {menuItems.map((item, idx) => {
-                    if (!item) return <div key={`section-${idx}`} className="nav-section">기본관리</div>;
+                    if (!item) return <div key={`section-${idx}`} className="nav-section">ê¸°ë³¸ê´ë¦¬</div>;
                     const canAccess = !item.adminOnly || user.role === 'admin';
                     const isDisabled = !canAccess;
                     return (
@@ -2023,7 +2240,7 @@ function App() {
 
             <div className="main">
                 <div className="topbar">
-                    <h1>{menuItems.find(m => m && m.id === page)?.label || '대시보드'}</h1>
+                    <h1>{menuItems.find(m => m && m.id === page)?.label || 'ëìë³´ë'}</h1>
                     <div className="topbar-right">
                         <div className="topbar-date">{new Date().toLocaleDateString('ko-KR')}</div>
                         <div className="topbar-user">
@@ -2031,7 +2248,7 @@ function App() {
                             <span>{user.name}</span>
                         </div>
                         <button className="btn btn-secondary btn-sm" onClick={handleLogout}>
-                            <i className="fas fa-sign-out-alt"></i> 로그아웃
+                            <i className="fas fa-sign-out-alt"></i> ë¡ê·¸ìì
                         </button>
                     </div>
                 </div>
@@ -2046,26 +2263,26 @@ function App() {
                     {page === 'molds' && <MoldAndDrawingPage data={data} setData={setData} />}
                     {page === 'workorder' && (
                         <div className="card">
-                            <div className="card-header"><h3>업무지시서</h3></div>
+                            <div className="card-header"><h3>ìë¬´ì§ìì</h3></div>
                             <div className="card-body">
                                 <div className="empty-state">
                                     <i className="fas fa-tasks"></i>
-                                    <p>업무지시서 기능이 준비 중입니다.</p>
+                                    <p>ìë¬´ì§ìì ê¸°ë¥ì´ ì¤ë¹ ì¤ìëë¤.</p>
                                 </div>
                             </div>
                         </div>
                     )}
                     {page === 'clients' && (
                         <div className="card">
-                            <div className="card-header"><h3>거래처관리</h3></div>
+                            <div className="card-header"><h3>ê±°ëì²ê´ë¦¬</h3></div>
                             <div className="card-body">
                                 <table>
                                     <thead>
                                         <tr>
-                                            <th>거래처명</th>
-                                            <th>사업자번호</th>
-                                            <th>담당자</th>
-                                            <th>유형</th>
+                                            <th>ê±°ëì²ëª</th>
+                                            <th>ì¬ììë²í¸</th>
+                                            <th>ë´ë¹ì</th>
+                                            <th>ì í</th>
                                         </tr>
                                     </thead>
                                     <tbody>
@@ -2074,7 +2291,7 @@ function App() {
                                                 <td>{c.name}</td>
                                                 <td>{c.bizNo}</td>
                                                 <td>{c.rep}</td>
-                                                <td><span className={`badge ${c.type === '고객사' ? 'badge-blue' : c.type === '공급사' ? 'badge-green' : 'badge-gray'}`}>{c.type}</span></td>
+                                                <td><span className={`badge ${c.type === 'ê³ ê°ì¬' ? 'badge-blue' : c.type === 'ê³µê¸ì¬' ? 'badge-green' : 'badge-gray'}`}>{c.type}</span></td>
                                             </tr>
                                         ))}
                                     </tbody>
@@ -2082,18 +2299,19 @@ function App() {
                             </div>
                         </div>
                     )}
+                    {page === 'users' && <UserManagementPage currentUser={user} />}
                     {page === 'products' && (
                         <div className="card">
-                            <div className="card-header"><h3>제품관리</h3></div>
+                            <div className="card-header"><h3>ì íê´ë¦¬</h3></div>
                             <div className="card-body">
                                 <table>
                                     <thead>
                                         <tr>
-                                            <th>제품코드</th>
-                                            <th>제품명</th>
-                                            <th>원가</th>
-                                            <th>판매가</th>
-                                            <th>단위</th>
+                                            <th>ì íì½ë</th>
+                                            <th>ì íëª</th>
+                                            <th>ìê°</th>
+                                            <th>íë§¤ê°</th>
+                                            <th>ë¨ì</th>
                                         </tr>
                                     </thead>
                                     <tbody>
