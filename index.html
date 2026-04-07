@@ -1,0 +1,2127 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>엘맥스텍 행정업무 대시보드</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/react/18.2.0/umd/react.production.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/react-dom/18.2.0/umd/react-dom.production.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/babel-standalone/7.23.9/babel.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" rel="stylesheet">
+    <style>
+        :root {
+            --primary: #1a56db; --primary-light: #e8effc;
+            --secondary: #0e9f6e; --secondary-light: #def7ec;
+            --danger: #e02424; --danger-light: #fde8e8;
+            --warning: #e3a008; --warning-light: #fdf6b2;
+            --dark: #1f2937; --gray: #6b7280; --gray-light: #f3f4f6;
+            --border: #e5e7eb; --white: #ffffff;
+            --shadow: 0 1px 3px rgba(0,0,0,0.1), 0 1px 2px rgba(0,0,0,0.06);
+            --shadow-lg: 0 10px 15px -3px rgba(0,0,0,0.1);
+        }
+        * { margin:0; padding:0; box-sizing:border-box; }
+        body { font-family: 'Segoe UI', -apple-system, sans-serif; background: #f0f2f5; color: var(--dark); }
+        .login-container { min-height:100vh; display:flex; align-items:center; justify-content:center; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); }
+        .login-card { background:white; border-radius:12px; padding:40px; width:100%; max-width:380px; box-shadow:var(--shadow-lg); }
+        .login-header { text-align:center; margin-bottom:32px; }
+        .login-header .logo { font-size:36px; font-weight:700; color:var(--primary); margin-bottom:8px; }
+        .login-header .subtitle { font-size:13px; color:var(--gray); }
+        .login-form .form-group { margin-bottom:16px; }
+        .login-form label { display:block; font-size:12px; font-weight:600; color:var(--gray); margin-bottom:6px; }
+        .login-form input { width:100%; padding:10px 12px; border:1px solid var(--border); border-radius:6px; font-size:13px; }
+        .login-form input:focus { outline:none; border-color:var(--primary); }
+        .login-error { background:var(--danger-light); color:var(--danger); padding:10px; border-radius:6px; font-size:12px; margin-bottom:16px; }
+        .sidebar { position:fixed; left:0; top:0; bottom:0; width:240px; background:var(--dark); color:white; z-index:100; overflow-y:auto; transition: transform 0.3s; }
+        .sidebar-header { padding:20px; border-bottom:1px solid rgba(255,255,255,0.1); display:flex; justify-content:space-between; align-items:center; }
+        .sidebar-header-info h2 { font-size:18px; font-weight:700; }
+        .sidebar-header-info p { font-size:11px; color:rgba(255,255,255,0.5); margin-top:4px; }
+        .sidebar-header-close { display:none; cursor:pointer; font-size:20px; }
+        .nav-item { display:flex; align-items:center; padding:12px 20px; cursor:pointer; transition:background 0.2s; border-left:3px solid transparent; }
+        .nav-item:hover { background:rgba(255,255,255,0.05); }
+        .nav-item.active { background:rgba(26,86,219,0.3); border-left-color:var(--primary); }
+        .nav-item i { width:20px; margin-right:12px; font-size:14px; }
+        .nav-item span { font-size:14px; }
+        .nav-item.disabled { opacity:0.5; cursor:not-allowed; }
+        .nav-section { padding:12px 20px 6px; font-size:11px; text-transform:uppercase; color:rgba(255,255,255,0.4); letter-spacing:1px; }
+        .main { margin-left:240px; min-height:100vh; }
+        .topbar { background:white; padding:16px 24px; display:flex; justify-content:space-between; align-items:center; border-bottom:1px solid var(--border); position:sticky; top:0; z-index:50; }
+        .topbar h1 { font-size:20px; font-weight:600; }
+        .topbar-right { display:flex; align-items:center; gap:16px; }
+        .topbar-date { font-size:13px; color:var(--gray); }
+        .topbar-user { font-size:13px; color:var(--gray); display:flex; align-items:center; gap:8px; }
+        .content { padding:24px; }
+        .card { background:white; border-radius:8px; box-shadow:var(--shadow); overflow:hidden; margin-bottom:16px; }
+        .card-header { padding:16px 20px; border-bottom:1px solid var(--border); display:flex; justify-content:space-between; align-items:center; }
+        .card-header h3 { font-size:15px; font-weight:600; }
+        .card-body { padding:20px; }
+        .stat-grid { display:grid; grid-template-columns:repeat(4,1fr); gap:16px; margin-bottom:24px; }
+        .stat-card { background:white; border-radius:8px; padding:20px; box-shadow:var(--shadow); cursor:pointer; transition: transform 0.1s; }
+        .stat-card:hover { transform:translateY(-2px); }
+        .stat-card .icon { width:40px; height:40px; border-radius:8px; display:flex; align-items:center; justify-content:center; font-size:18px; margin-bottom:12px; }
+        .stat-card .label { font-size:12px; color:var(--gray); margin-bottom:4px; }
+        .stat-card .value { font-size:24px; font-weight:700; }
+        .stat-card .change { font-size:12px; margin-top:4px; }
+        .stat-card .change.up { color:var(--secondary); }
+        .stat-card .change.down { color:var(--danger); }
+        .grid-2 { display:grid; grid-template-columns:1fr 1fr; gap:16px; margin-bottom:24px; }
+        .grid-3 { display:grid; grid-template-columns:1fr 1fr 1fr; gap:16px; margin-bottom:24px; }
+        table { width:100%; border-collapse:collapse; font-size:13px; }
+        th { background:var(--gray-light); padding:10px 12px; text-align:left; font-weight:600; font-size:12px; color:var(--gray); text-transform:uppercase; letter-spacing:0.5px; white-space:nowrap; }
+        td { padding:10px 12px; border-bottom:1px solid var(--border); }
+        tr:hover td { background:var(--gray-light); }
+        .badge { display:inline-block; padding:2px 8px; border-radius:12px; font-size:11px; font-weight:600; }
+        .badge-green { background:var(--secondary-light); color:var(--secondary); }
+        .badge-red { background:var(--danger-light); color:var(--danger); }
+        .badge-yellow { background:var(--warning-light); color:var(--warning); }
+        .badge-blue { background:var(--primary-light); color:var(--primary); }
+        .badge-gray { background:var(--gray-light); color:var(--gray); }
+        .btn { padding:8px 16px; border:none; border-radius:6px; cursor:pointer; font-size:13px; font-weight:500; transition:all 0.2s; display:inline-flex; align-items:center; gap:6px; }
+        .btn-primary { background:var(--primary); color:white; }
+        .btn-primary:hover { background:#1648b8; }
+        .btn-secondary { background:var(--gray-light); color:var(--dark); }
+        .btn-secondary:hover { background:#e5e7eb; }
+        .btn-success { background:var(--secondary); color:white; }
+        .btn-danger { background:var(--danger); color:white; }
+        .btn-sm { padding:4px 10px; font-size:12px; }
+        input, select, textarea { padding:8px 12px; border:1px solid var(--border); border-radius:6px; font-size:13px; width:100%; outline:none; transition:border 0.2s; font-family:inherit; }
+        input:focus, select:focus, textarea:focus { border-color:var(--primary); }
+        textarea { min-height:80px; resize:vertical; }
+        .form-group { margin-bottom:14px; }
+        .form-group label { display:block; font-size:12px; font-weight:600; color:var(--gray); margin-bottom:4px; }
+        .form-row { display:grid; grid-template-columns:1fr 1fr; gap:12px; }
+        .modal-overlay { position:fixed; top:0; left:0; right:0; bottom:0; background:rgba(0,0,0,0.5); z-index:200; display:flex; align-items:center; justify-content:center; }
+        .modal { background:white; border-radius:12px; width:90%; max-width:700px; max-height:90vh; overflow-y:auto; box-shadow:var(--shadow-lg); }
+        .modal-header { padding:20px 24px; border-bottom:1px solid var(--border); display:flex; justify-content:space-between; align-items:center; }
+        .modal-body { padding:24px; }
+        .modal-footer { padding:16px 24px; border-top:1px solid var(--border); display:flex; justify-content:flex-end; gap:8px; }
+        .chart-container { position:relative; height:300px; }
+        .tab-bar { display:flex; border-bottom:2px solid var(--border); margin-bottom:16px; }
+        .tab { padding:10px 20px; cursor:pointer; font-size:13px; font-weight:500; color:var(--gray); border-bottom:2px solid transparent; margin-bottom:-2px; transition:all 0.2s; }
+        .tab.active { color:var(--primary); border-bottom-color:var(--primary); }
+        .tab:hover { color:var(--dark); }
+        .empty-state { text-align:center; padding:40px; color:var(--gray); }
+        .empty-state i { font-size:48px; margin-bottom:16px; opacity:0.3; }
+        .toast { position:fixed; bottom:24px; right:24px; background:var(--dark); color:white; padding:12px 20px; border-radius:8px; font-size:13px; z-index:300; animation: slideUp 0.3s ease; }
+        @keyframes slideUp { from { transform:translateY(20px); opacity:0; } to { transform:translateY(0); opacity:1; } }
+        .upload-zone { border:2px dashed var(--border); border-radius:12px; padding:40px 20px; text-align:center; cursor:pointer; transition:all 0.2s; }
+        .upload-zone:hover, .upload-zone.drag-over { border-color:var(--primary); background:var(--primary-light); }
+        .upload-zone i { font-size:36px; color:var(--gray); margin-bottom:12px; }
+        .upload-zone p { color:var(--gray); font-size:14px; }
+        .upload-zone .sub { font-size:12px; margin-top:6px; }
+        .preview-table { max-height:400px; overflow:auto; border:1px solid var(--border); border-radius:8px; }
+        .preview-table table { font-size:12px; }
+        .preview-table th { position:sticky; top:0; z-index:1; }
+        .mapping-grid { display:grid; grid-template-columns:1fr auto 1fr; gap:8px; align-items:center; margin-bottom:8px; }
+        .mapping-arrow { color:var(--gray); font-size:16px; }
+        .status-dot { display:inline-block; width:8px; height:8px; border-radius:50%; margin-right:6px; }
+        .status-dot.green { background:var(--secondary); }
+        .status-dot.red { background:var(--danger); }
+        .status-dot.yellow { background:var(--warning); }
+        .status-dot.blue { background:var(--primary); }
+        .cf-summary { display:grid; grid-template-columns:repeat(3,1fr); gap:16px; margin-bottom:24px; }
+        .cf-box { background:white; border-radius:8px; padding:20px; box-shadow:var(--shadow); text-align:center; }
+        .cf-box .cf-label { font-size:12px; color:var(--gray); margin-bottom:8px; }
+        .cf-box .cf-value { font-size:28px; font-weight:700; }
+        .cf-box .cf-value.positive { color:var(--secondary); }
+        .cf-box .cf-value.negative { color:var(--danger); }
+        .cf-cat { display:flex; justify-content:space-between; align-items:center; padding:10px 0; border-bottom:1px solid var(--border); }
+        .cf-cat:last-child { border-bottom:none; }
+        .cf-cat-name { font-size:14px; font-weight:500; }
+        .cf-cat-amount { font-size:14px; font-weight:600; }
+        .cf-cat-bar { height:6px; background:var(--gray-light); border-radius:3px; margin-top:4px; }
+        .cf-cat-bar-fill { height:100%; border-radius:3px; transition:width 0.3s; }
+        .category-tabs { display:flex; gap:8px; margin-bottom:16px; }
+        .category-tab { padding:6px 12px; border:1px solid var(--border); border-radius:6px; cursor:pointer; font-size:12px; transition:all 0.2s; }
+        .category-tab.active { background:var(--primary); color:white; border-color:var(--primary); }
+        .inventory-grid { display:grid; grid-template-columns:repeat(auto-fill, minmax(250px, 1fr)); gap:16px; margin-bottom:24px; }
+        .statement-form { background:white; border:2px solid #000; padding:20px; margin-bottom:24px; max-width:900px; margin-left:auto; margin-right:auto; }
+        .statement-form-header { text-align:center; margin-bottom:20px; border-bottom:2px solid #000; padding-bottom:10px; }
+        .statement-form-header h3 { font-size:18px; font-weight:700; margin-bottom:4px; }
+        .statement-form-header p { font-size:12px; color:var(--gray); margin:2px 0; }
+        .statement-form-section { margin-bottom:16px; }
+        .statement-form-section-title { font-size:12px; font-weight:700; margin-bottom:8px; }
+        .statement-form-info { display:grid; grid-template-columns:1fr 1fr; gap:16px; margin-bottom:16px; font-size:12px; }
+        .statement-form-info-block { }
+        .statement-form-info-block .label { font-weight:600; margin-bottom:2px; }
+        .statement-form-table { width:100%; border-collapse:collapse; font-size:11px; margin-bottom:16px; }
+        .statement-form-table th, .statement-form-table td { border:1px solid #000; padding:6px; text-align:left; }
+        .statement-form-table th { background:var(--gray-light); font-weight:700; text-align:center; }
+        .statement-form-totals { display:flex; justify-content:flex-end; gap:16px; margin-top:16px; font-size:12px; font-weight:600; }
+        @media print {
+            .sidebar, .topbar, .no-print { display:none!important; }
+            .main { margin-left:0!important; }
+            .statement-form { border:1px solid #000; page-break-inside:avoid; }
+            body { background:white; }
+        }
+        @media (max-width:768px) {
+            .sidebar { transform:translateX(-100%); }
+            .sidebar.open { transform:translateX(0); }
+            .main { margin-left:0; }
+            .stat-grid, .cf-summary { grid-template-columns:repeat(2,1fr); }
+            .grid-2, .grid-3 { grid-template-columns:1fr; }
+            .form-row { grid-template-columns:1fr; }
+        }
+    </style>
+</head>
+<body>
+<div id="root"></div>
+<script type="text/babel">
+const { useState, useEffect, useRef, useCallback, useMemo } = React;
+
+// ==================== UTILITIES ====================
+function fmt(n) { return n != null ? Number(n).toLocaleString('ko-KR') : '0'; }
+function fmtW(n) { return fmt(n) + '원'; }
+function fmtDate(d) { if(!d) return '-'; if(d instanceof Date) return d.toISOString().slice(0,10); return String(d).slice(0,10); }
+function genId(d) { d.nextId = (d.nextId||1000)+1; return d.nextId; }
+function StatIcon({bg, color, icon}) { return React.createElement('div', {className:'icon', style:{background:bg, color:color}}, React.createElement('i', {className:'fas '+icon})); }
+
+// ==================== XLSX PARSER ====================
+function parseXlsx(file) {
+    return new Promise((resolve, reject) => {
+        const reader = new FileReader();
+        reader.onload = (e) => {
+            try {
+                const wb = XLSX.read(e.target.result, {type:'array', cellDates:true});
+                const sheets = {};
+                wb.SheetNames.forEach(name => {
+                    sheets[name] = XLSX.utils.sheet_to_json(wb.Sheets[name], {header:1, defval:null, raw:false, dateNF:'yyyy-mm-dd'});
+                });
+                resolve({ sheetNames: wb.SheetNames, sheets });
+            } catch(err) { reject(err); }
+        };
+        reader.onerror = reject;
+        reader.readAsArrayBuffer(file);
+    });
+}
+
+// Smart column mapping
+const ORDER_COLUMN_MAP = {
+    '발주일': 'orderDate', '발주일자': 'orderDate',
+    '납입기한': 'dueDate', '납기일': 'dueDate', '납기': 'dueDate',
+    '출하일': 'shipDate', '출하일자': 'shipDate',
+    '업체명': 'client', '거래처': 'client', '거래처명': 'client', '고객사': 'client',
+    '발주번호': 'orderNo', 'PO번호': 'orderNo',
+    '업체 품명': 'clientProduct', '업체품명': 'clientProduct',
+    '엘멕스텍 품명': 'product', '품명': 'product', '제품명': 'product', '엘맥스텍 품명': 'product', '엘멜스텍 품명': 'product',
+    '발주수량': 'qty', '수량': 'qty',
+    '로트번호': 'lotNo', '로트': 'lotNo', 'LOT': 'lotNo',
+    '세금계산서 발행일자': 'invoiceDate', '세금계산서': 'invoiceDate',
+    '비고': 'notes', '메모': 'notes',
+    '단가': 'unitPrice', '단가(원)': 'unitPrice',
+    '금액': 'amount', '합계금액': 'amount',
+};
+
+function autoMapColumns(headers) {
+    const mapping = {};
+    headers.forEach((h, idx) => {
+        if(!h) return;
+        const clean = String(h).trim();
+        if (ORDER_COLUMN_MAP[clean]) {
+            mapping[idx] = ORDER_COLUMN_MAP[clean];
+        } else {
+            for(const [key, val] of Object.entries(ORDER_COLUMN_MAP)) {
+                if(clean.includes(key) || key.includes(clean)) {
+                    mapping[idx] = val;
+                    break;
+                }
+            }
+        }
+    });
+    return mapping;
+}
+
+// ==================== BANK TRANSACTION CATEGORIZER ====================
+const BANK_CATEGORIES = {
+    '거래처입금': { color:'#0e9f6e', icon:'fa-building', keywords:[ '푸른기술', '에이텍', '에니텍시스', '미도리야', '와이즈', '캐논코리아', '케이더블유트레', '케이스타컴' ] },
+    '자재/부품비': { color:'#e3a008', icon:'fa-cogs', keywords:[ '금영테크', '선진분말야금', '제이아이텍', '신일테크', '스마트에프앙에스', '우리종합상사', '신대성스프링', '한라스프링', '캐논스프링', '금형대금', '샤프트금형' ] },
+    '외주/용역비': { color:'#7c3aed', icon:'fa-handshake', keywords:[ '이음로직스', '와이즈브러쉬' ] },
+    '인건비(급여)': { color:'#1a56db', icon:'fa-users', keywords:[ '김중수급여', '이진급여', '현복자급여', '김중수', '이진', '현복자', '임유정' ] },
+    '인건비(아르바이트)': { color:'#6366f1', icon:'fa-user-clock', keywords:[ '김성중', '황용운', '김영일', '알바' ] },
+    '4대보험': { color:'#db2777', icon:'fa-shield-halved', keywords:[ '국민연금', '국민건강', '고용보험', '산재보험' ] },
+    '세무/법무': { color:'#0891b2', icon:'fa-balance-scale', keywords:[ '김순근세무', '노옥현', '법무사' ] },
+    '관리비/임대': { color:'#ea580c', icon:'fa-building-user', keywords:[ '604호', '402호', '412호', '관리비', '중계수수료', '계약금', '유리공사' ] },
+    '대출/금융': { color:'#64748b', icon:'fa-university', keywords:[ '기업회전대출', '대출금상환', '이음로직스대출', '이음로직스대여', '대여금상환', '이자-' ] },
+    '세금/공과금': { color:'#be123c', icon:'fa-receipt', keywords:[ '국세_', '국세조회', '지방세', '등록면허세', '관세납부', '특허등록비' ] },
+    '통신/IT': { color:'#0d9488', icon:'fa-wifi', keywords:[ 'SKB', '웹케시경리나라' ] },
+    '기타경비': { color:'#78716c', icon:'fa-ellipsis', keywords:[ '비씨카드', 'SMS통지', '에어컨', '전등교체', '법인차량과태료' ] },
+    '지원금/환급': { color:'#16a34a', icon:'fa-hand-holding-dollar', keywords:[ '고용부일가정양', '환급', '2026년결산' ] },
+    '개인입금': { color:'#a855f7', icon:'fa-user', keywords:[ '김화준', '류대수', '김경우' ] },
+};
+
+function categorizeTransaction(desc) {
+    const d = desc || '';
+    for(const [cat, info] of Object.entries(BANK_CATEGORIES)) {
+        for(const kw of info.keywords) {
+            if(d.includes(kw)) return cat;
+        }
+    }
+    if(d.includes('이음로직스') && !d.includes('대출') && !d.includes('대여')) return '외주/용역비';
+    return '기타경비';
+}
+
+// ==================== USER MANAGEMENT ====================
+const USERS = {
+    'kimjs': { name: '김중수 (대표)', role: 'admin', password: '1234' },
+    'kimkt': { name: '김국태 (이사)', role: 'admin', password: '1234' },
+    'kimsj': { name: '김성중 (과장)', role: 'staff', password: '1234' },
+    'hwangyw': { name: '황용운 (대리)', role: 'staff', password: '1234' },
+};
+
+const STAFF_RESTRICTED_PAGES = ['dashboard', 'cashflow', 'finance', 'data-init'];
+
+function canAccess(userRole, page) {
+    if (userRole === 'admin') return true;
+    if (STAFF_RESTRICTED_PAGES.includes(page)) return false;
+    return true;
+}
+
+// ==================== DATA STORE ====================
+const STORAGE_KEY = 'elmax_dashboard_v4';
+
+function getInitialData() {
+    try {
+        const saved = localStorage.getItem(STORAGE_KEY);
+        if (saved) {
+            const parsed = JSON.parse(saved);
+            if (parsed.version === 4) return parsed;
+        }
+    } catch(e) {}
+    return getDefaultData();
+}
+
+function getDefaultData() {
+    return {
+        version: 4,
+        company: { name: '(주)엘맥스텍', bizNo: '131-81-56243', rep: '김중수', addr: '인천광역시 남동구 은봉로 51 (논현동) B동 412호', bizType: '제조', bizItem: '전자석크러치', phone: '010-7373-6734', fax: '' },
+        clients: [
+            { id:1, name:'푸른기술', bizNo:'229-81-28699', rep:'함현철', type:'고객사' },
+            { id:2, name:'에이텍', bizNo:'214-81-56422', rep:'신승영,이상훈', type:'고객사' },
+            { id:3, name:'미도리야전기코리아', bizNo:'220-86-06859', rep:'YAMAMOTO NAOKI', type:'고객사' },
+            { id:4, name:'에니텍시스', bizNo:'205-81-30675', rep:'홍사혁', type:'고객사' },
+            { id:5, name:'캐논코리아', bizNo:'120-81-15636', rep:'박정우', type:'고객사' },
+            { id:6, name:'와이즈', bizNo:'523-87-02119', rep:'김대영외 1명', type:'고객사' },
+            { id:7, name:'케이더블유트레', bizNo:'', rep:'', type:'고객사' },
+            { id:8, name:'금영테크', bizNo:'131-34-51720', rep:'김영찬', type:'공급사' },
+            { id:9, name:'선진분말야금', bizNo:'137-81-50591', rep:'송영호', type:'공급사' },
+            { id:10, name:'제이아이텍', bizNo:'823-27-00185', rep:'배수호', type:'공급사' },
+            { id:11, name:'신일테크', bizNo:'130-86-18028', rep:'김수경', type:'공급사' },
+            { id:12, name:'스마트에프앙에스', bizNo:'128-86-51951', rep:'엄선중', type:'공급사' },
+            { id:13, name:'우리종합상사', bizNo:'409-14-90308', rep:'김귀남', type:'공급사' },
+            { id:14, name:'이음로직스', bizNo:'827-86-02479', rep:'김국태', type:'외주' },
+            { id:15, name:'한라스프링', bizNo:'113-21-97067', rep:'문건우', type:'공급사' },
+            { id:16, name:'신대성스프링', bizNo:'381-78-00077', rep:'장봉득', type:'공급사' },
+            { id:17, name:'한진물산', bizNo:'131-81-59221', rep:'노진억', type:'공급사' },
+            { id:18, name:'티테크', bizNo:'131-10-99086', rep:'박경순', type:'공급사' },
+            { id:19, name:'웹케시', bizNo:'214-86-35102', rep:'강원주', type:'서비스' },
+            { id:20, name:'김순근세무회계사무소', bizNo:'113-04-52840', rep:'김순근', type:'서비스' },
+        ],
+        products: [
+            { id:1, code:'LCDM-1000', name:'LCDM-1000', vendorName:'E3637RH24P LCDM-1000', category:'완제품', costPrice:4500, sellPrice:6500, unit:'EA' },
+            { id:2, code:'LCDM-2000', name:'LCDM-2000', vendorName:'LCDM-2000', category:'완제품', costPrice:4500, sellPrice:6500, unit:'EA' },
+            { id:3, code:'LCDM-4000', name:'LCDM-4000', vendorName:'LCDM-4000', category:'완제품', costPrice:4500, sellPrice:6500, unit:'EA' },
+            { id:4, code:'ECDM-100', name:'ECDM-100', vendorName:'EL24PL ECDM', category:'완제품', costPrice:5200, sellPrice:7450, unit:'EA' },
+            { id:5, code:'ECDM-200', name:'ECDM-200', vendorName:'ECDM-200', category:'완제품', costPrice:5200, sellPrice:7450, unit:'EA' },
+            { id:6, code:'ECDM-400', name:'ECDM-400', vendorName:'ECDM-400', category:'완제품', costPrice:5200, sellPrice:7450, unit:'EA' },
+            { id:7, code:'PLE-100', name:'PLE-100', vendorName:'CLUTCH EO24PLE100', category:'완제품', costPrice:5300, sellPrice:7600, unit:'EA' },
+            { id:8, code:'CTNN-0001A', name:'CTNN-0001A', vendorName:'PICKUP YCST LM20', category:'완제품', costPrice:4700, sellPrice:6765, unit:'EA' },
+            { id:9, code:'4265N00009A', name:'4265N00009A', vendorName:'4265N00009A', category:'완제품', costPrice:4600, sellPrice:6605, unit:'EA' },
+            { id:10, code:'4265N00010A', name:'4265N00010A', vendorName:'4265N00010A', category:'완제품', costPrice:4600, sellPrice:6605, unit:'EA' },
+            { id:11, code:'4265N00011A', name:'4265N00011A', vendorName:'4265N00011A', category:'완제품', costPrice:4600, sellPrice:6605, unit:'EA' },
+            { id:12, code:'121K40440', name:'VOLANTE(121K40440)', vendorName:'121K40440', category:'완제품', costPrice:3200, sellPrice:4937.5, unit:'EA' },
+            { id:13, code:'CLUTCH-5KG', name:'CLUTCH (5kg)', vendorName:'Clutch:Feed:PM3', category:'완제품', costPrice:6300, sellPrice:9000, unit:'EA' },
+            { id:14, code:'CLUTCH-7.5KG', name:'CLUTCH (7.5kg)', vendorName:'CLUTCH (7.5kg)', category:'완제품', costPrice:7900, sellPrice:11300, unit:'EA' },
+            { id:15, code:'RMC-210', name:'RMC-210', vendorName:'RMC-210', category:'완제품', costPrice:7400, sellPrice:10645, unit:'EA' },
+            { id:16, code:'RMC-209', name:'RMC-209', vendorName:'RMC-209', category:'완제품', costPrice:7400, sellPrice:10645, unit:'EA' },
+            { id:17, code:'HU1-2024-000', name:'HU1-2024-000', vendorName:'HU1-2024-000', category:'완제품', costPrice:75, sellPrice:107, unit:'EA' },
+        ],
+        inventory: [
+            { id:1, category:'완제품', code:'LCDM-1000', name:'LCDM-1000', qty:450, location:'A-01', notes:'안정적 재고' },
+            { id:2, category:'완제품', code:'ECDM-100', name:'ECDM-100', qty:320, location:'A-02', notes:'' },
+            { id:3, category:'완제품', code:'PLE-100', name:'PLE-100', qty:280, location:'A-03', notes:'급수 필요' },
+            { id:4, category:'반제품', code:'SHA-001', name:'SHAFT (준성품)', qty:150, location:'B-01', notes:'' },
+            { id:5, category:'반제품', code:'BOB-001', name:'BOBBIN (준성품)', qty:200, location:'B-02', notes:'' },
+            { id:6, category:'기본부품', code:'CMP-001', name:'기본부품 A', qty:1200, location:'C-01', notes:'원재료' },
+            { id:7, category:'기본부품', code:'CMP-002', name:'기본부품 B', qty:850, location:'C-02', notes:'' },
+        ],
+        moldsAndDrawings: {
+            molds: [
+                { id:1, name:'GEAR', code:'HU1-2022-000', material:'POM', location:'건일테크 보관', status:'정상' },
+                { id:2, name:'SHAFT', code:'HU1-2045-001', material:'PBT', location:'건일테크 보관', status:'정상' },
+                { id:3, name:'BOBBIN', code:'HU1-2046-000', material:'KEP', location:'건일테크 보관', status:'정상' },
+                { id:4, name:'HOUSING', code:'HU1-2050-000', material:'POM', location:'티테크 이관', status:'이관' },
+            ],
+            moldStatus: [
+                { location:'우리정공', count:15, notes:'일부 분실(2018년 10월), 공유금형 있음' },
+                { location:'건일테크', count:3, notes:'핵심 금형 안전보관' },
+            ],
+            drawings: [
+                { id:1, filename:'GEAR_BOBBIN_DRAWING_01.dwg', type:'도면', relatedProduct:'GEAR BOBBIN', model:'Xerox' },
+                { id:2, filename:'GEAR_BOBBIN_DRAWING_02.dwg', type:'도면', relatedProduct:'GEAR BOBBIN', model:'FXK Volante' },
+                { id:3, filename:'SHAFT_DRAWING_01.dwg', type:'도면', relatedProduct:'SHAFT', model:'Blue Technology' },
+                { id:4, filename:'BOBBIN_DRAWING_01.dwg', type:'도면', relatedProduct:'BOBBIN', model:'Xerox' },
+                { id:5, filename:'BUSHING_DRAWING_01.dwg', type:'도면', relatedProduct:'BUSHING', model:'FXK Volante' },
+            ],
+        },
+        orders: [
+            { id:1, orderDate:'2026-03-30', dueDate:'2026-05-01', shipDate:'', client:'푸른기술', orderNo:'PO2603000308', clientProduct:'E3637RH24P LCDM-1000', product:'LCDM-1000', qty:1350, lotNo:'', invoiceDate:'', notes:'', status:'대기', trackingNo:'' },
+            { id:2, orderDate:'2026-03-30', dueDate:'2026-05-01', shipDate:'', client:'푸른기술', orderNo:'PO2603000288', clientProduct:'EL24PL ECDM', product:'ECDM-100', qty:300, lotNo:'', invoiceDate:'', notes:'', status:'대기', trackingNo:'' },
+            { id:3, orderDate:'2026-03-17', dueDate:'2026-05-17', shipDate:'', client:'푸른기술', orderNo:'PO2603000119', clientProduct:'CLUTCH EO24PLE100', product:'PLE-100', qty:500, lotNo:'', invoiceDate:'', notes:'', status:'대기', trackingNo:'' },
+            { id:4, orderDate:'2026-03-12', dueDate:'2026-04-01', shipDate:'', client:'에이텍', orderNo:'POZ20260300169', clientProduct:'CTNN-0001A', product:'CTNN-0001A', qty:600, lotNo:'', invoiceDate:'', notes:'', status:'납기초과', trackingNo:'' },
+            { id:5, orderDate:'2026-03-12', dueDate:'2026-04-01', shipDate:'2026-04-06', client:'에이텍', orderNo:'UPO20260300282', clientProduct:'4265N00010A', product:'4265N00010A', qty:200, lotNo:'', invoiceDate:'2026-04-15', notes:'', status:'출하완료', trackingNo:'HJ2604001' },
+            { id:6, orderDate:'2026-03-12', dueDate:'2026-04-01', shipDate:'2026-04-06', client:'에이텍', orderNo:'UPO20260300282', clientProduct:'4265N00009A', product:'4265N00009A', qty:200, lotNo:'', invoiceDate:'2026-04-15', notes:'', status:'출하완료', trackingNo:'HJ2604001' },
+            { id:7, orderDate:'2026-03-12', dueDate:'2026-04-01', shipDate:'2026-04-06', client:'에이텍', orderNo:'UPO20260300282', clientProduct:'4265N00011A', product:'4265N00011A', qty:200, lotNo:'', invoiceDate:'2026-04-15', notes:'', status:'출하완료', trackingNo:'HJ2604001' },
+            { id:8, orderDate:'2026-02-25', dueDate:'2026-03-15', shipDate:'2026-03-16', client:'미도리야전기코리아', orderNo:'PO2602250001', clientProduct:'121K40440', product:'121K40440', qty:5000, lotNo:'LT202603', invoiceDate:'2026-03-17', notes:'', status:'출하완료', trackingNo:'CJ2603001' },
+        ],
+        salesInvoices: [
+            { id:1, invoiceDate:'2026-04-15', vendor:'에이텍', amount:5080000, bankDeposited:false, depositDate:'', depositAmount:0, notes:'미입금' },
+            { id:2, invoiceDate:'2026-03-17', vendor:'미도리야전기코리아', amount:19687500, bankDeposited:true, depositDate:'2026-03-20', depositAmount:19687500, notes:'입금완료' },
+        ],
+        purchaseInvoices: [
+            { id:1, invoiceDate:'2026-04-10', vendor:'제이아이텍', amount:450000, bankWithdrawn:false, withdrawalDate:'', withdrawalAmount:0, notes:'미출금' },
+            { id:2, invoiceDate:'2026-03-15', vendor:'선진분말야금', amount:720000, bankWithdrawn:true, withdrawalDate:'2026-03-18', withdrawalAmount:720000, notes:'출금완료' },
+        ],
+        statements: [
+            { id:1, statementNo:'ST202604001', clientId:2, clientName:'에이텍', createdDate:'2026-04-06', sentDate:'', status:'생성', items: [
+                { month:4, day:6, productName:'4265N00010A', spec:'', qty:200, unitPrice:0, suppliedAmount:0, tax:0 },
+            ] },
+        ],
+        bankTransactions: [
+            { id:1, date:'2026-04-05', type:'입금', description:'푸른기술', amount:15000000, balance:45000000 },
+            { id:2, date:'2026-04-04', type:'출금', description:'이음로직스 용역비', amount:3500000, balance:30000000 },
+            { id:3, date:'2026-04-03', type:'입금', description:'에이텍', amount:5080000, balance:33500000 },
+            { id:4, date:'2026-04-02', type:'출금', description:'제이아이텍 부품비', amount:450000, balance:28420000 },
+            { id:5, date:'2026-04-01', type:'입금', description:'미도리야전기코리아', amount:19687500, balance:28870000 },
+        ],
+        nextId: 100,
+    };
+}
+
+// ==================== LOGIN COMPONENT ====================
+function LoginPage({ onLogin }) {
+    const [id, setId] = useState('');
+    const [password, setPassword] = useState('');
+    const [error, setError] = useState('');
+
+    const handleLogin = () => {
+        if (!id || !password) {
+            setError('ID와 비밀번호를 입력해주세요.');
+            return;
+        }
+        const user = USERS[id];
+        if (!user || user.password !== password) {
+            setError('ID 또는 비밀번호가 일치하지 않습니다.');
+            return;
+        }
+        onLogin({ id, ...user });
+    };
+
+    return (
+        <div className="login-container">
+            <div className="login-card">
+                <div className="login-header">
+                    <div className="logo">엘맥스텍</div>
+                    <div className="subtitle">행정업무 대시보드</div>
+                </div>
+                {error && <div className="login-error">{error}</div>}
+                <form className="login-form" onSubmit={(e) => { e.preventDefault(); handleLogin(); }}>
+                    <div className="form-group">
+                        <label>ID</label>
+                        <input type="text" value={id} onChange={(e) => setId(e.target.value)} placeholder="사용자 ID 입력" />
+                    </div>
+                    <div className="form-group">
+                        <label>비밀번호</label>
+                        <input type="password" value={password} onChange={(e) => setPassword(e.target.value)} placeholder="비밀번호 입력" />
+                    </div>
+                    <button type="submit" className="btn btn-primary" style={{width:'100%', justifyContent:'center'}}>
+                        <i className="fas fa-sign-in-alt"></i> 로그인
+                    </button>
+                </form>
+                <div style={{marginTop:'16px', textAlign:'center', fontSize:'12px', color:' var(--gray)'}}>
+                    <p>테스트 계정: kimjs / 1234 (관리자)</p>
+                    <p>테스트 계정: kimsj / 1234 (스태프)</p>
+                </div>
+            </div>
+        </div>
+    );
+}
+
+// ==================== DASHBOARD PAGE ====================
+function DashboardPage({ data, setPage }) {
+    const today = new Date().toISOString().slice(0,10);
+    const currentMonth = new Date().getMonth() + 1;
+    const currentYear = new Date().getFullYear();
+
+    const orders = data.orders || [];
+    const totalOrders = orders.length;
+    const completedOrders = orders.filter(o => o.status === '출하완료').length;
+    const overduedOrders = orders.filter(o => o.status === '납기초과').length;
+    const pendingOrders = orders.filter(o => o.status === '대기').length;
+
+    const revenue = data.salesInvoices ? data.salesInvoices.reduce((sum, inv) => sum + (inv.bankDeposited ? inv.depositAmount : 0), 0) : 0;
+    const pendingRevenue = data.salesInvoices ? data.salesInvoices.reduce((sum, inv) => sum + (!inv.bankDeposited ? inv.amount : 0), 0) : 0;
+
+    return (
+        <>
+            <div style={{marginBottom:'24px'}}>
+                <h2 style={{fontSize:'20px', fontWeight:'600', marginBottom:'16px'}}>핵심 지표</h2>
+                <div className="stat-grid">
+                    <div className="stat-card" onClick={() => setPage('orders')}>
+                        <StatIcon bg="var(--primary-light)" color="var(--primary)" icon="fa-boxes" />
+                        <div className="label">총 발주건수</div>
+                        <div className="value">{fmt(totalOrders)}</div>
+                        <div className="change up"><i className="fas fa-arrow-up"></i> 완료: {fmt(completedOrders)}</div>
+                    </div>
+                    <div className="stat-card" onClick={() => setPage('orders')}>
+                        <StatIcon bg="var(--danger-light)" color="var(--danger)" icon="fa-clock" />
+                        <div className="label">납기초과</div>
+                        <div className="value">{fmt(overduedOrders)}</div>
+                        <div className="change down"><i className="fas fa-arrow-down"></i> 대기: {fmt(pendingOrders)}</div>
+                    </div>
+                    <div className="stat-card" onClick={() => setPage('finance')}>
+                        <StatIcon bg="var(--secondary-light)" color="var(--secondary)" icon="fa-coins" />
+                        <div className="label">정산완료</div>
+                        <div className="value">{fmtW(revenue)}</div>
+                        <div className="change up"><i className="fas fa-arrow-up"></i> 미입금: {fmtW(pendingRevenue)}</div>
+                    </div>
+                    <div className="stat-card" onClick={() => setPage('inventory')}>
+                        <StatIcon bg="var(--warning-light)" color="var(--warning)" icon="fa-warehouse" />
+                        <div className="label">전체 재고</div>
+                        <div className="value">{fmt(data.inventory?.length || 0)}</div>
+                        <div className="change" style={{color:'var(--gray)'}}><i className="fas fa-info-circle"></i> {fmt(data.inventory?.reduce((s,i) => s+i.qty,0) || 0)} 개</div>
+                    </div>
+                </div>
+            </div>
+
+            <div className="grid-2">
+                <div className="card">
+                    <div className="card-header">
+                        <h3>최근 발주건</h3>
+                    </div>
+                    <div className="card-body">
+                        {orders.slice(0, 5).length === 0 ? (
+                            <div className="empty-state">
+                                <i className="fas fa-inbox"></i>
+                                <p>발주 내역이 없습니다.</p>
+                            </div>
+                        ) : (
+                            <table>
+                                <thead>
+                                    <tr>
+                                        <th>발주일</th>
+                                        <th>업체</th>
+                                        <th>상태</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {orders.slice(0, 5).map(o => (
+                                        <tr key={o.id}>
+                                            <td>{fmtDate(o.orderDate)}</td>
+                                            <td>{o.client}</td>
+                                            <td>
+                                                <span className={`badge ${
+                                                    o.status === '출하완료' ? 'badge-green' :
+                                                    o.status === '납기초과' ? 'badge-red' :
+                                                    o.status === '진행중' ? 'badge-blue' : 'badge-gray'
+                                                }`}>{o.status}</span>
+                                            </td>
+                                        </tr>
+                                    ))}
+                                </tbody>
+                            </table>
+                        )}
+                    </div>
+                </div>
+
+                <div className="card">
+                    <div className="card-header">
+                        <h3>공지사항</h3>
+                    </div>
+                    <div className="card-body">
+                        <div style={{paddingBottom:'12px', borderBottom:'1px solid var(--border)', marginBottom:'12px'}}>
+                            <div style={{fontSize:'13px', fontWeight:'600', marginBottom:'4px'}}>대시보드 v4.0 출시</div>
+                            <div style={{fontSize:'12px', color:'var(--gray)'}}>새로운 로그인 시스템 및 권한 관리가 추가되었습니다.</div>
+                        </div>
+                        <div>
+                            <div style={{fontSize:'13px', fontWeight:'600', marginBottom:'4px'}}>데이터 백업 안내</div>
+                            <div style={{fontSize:'12px', color:'var(--gray)'}}>정기적인 데이터 백업을 권장합니다.</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </>
+    );
+}
+
+// ==================== CASHFLOW PAGE ====================
+function CashflowPage({ data }) {
+    const transactions = data.bankTransactions || [];
+    const categories = {};
+
+    transactions.forEach(t => {
+        const cat = categorizeTransaction(t.description);
+        if (!categories[cat]) categories[cat] = { total: 0, count: 0, type: t.type };
+        if (t.type === '출금') categories[cat].total += t.amount;
+    });
+
+    const income = transactions.filter(t => t.type === '입금').reduce((s,t) => s+t.amount, 0);
+    const expense = transactions.filter(t => t.type === '출금').reduce((s,t) => s+t.amount, 0);
+    const balance = income - expense;
+
+    const sortedCats = Object.entries(categories).sort((a, b) => b[1].total - a[1].total);
+
+    return (
+        <div>
+            <h2 style={{fontSize:'20px', fontWeight:'600', marginBottom:'16px'}}>현금흐름</h2>
+
+            <div className="cf-summary">
+                <div className="cf-box">
+                    <div className="cf-label">총 입금</div>
+                    <div className="cf-value positive">{fmtW(income)}</div>
+                </div>
+                <div className="cf-box">
+                    <div className="cf-label">총 출금</div>
+                    <div className="cf-value negative">{fmtW(expense)}</div>
+                </div>
+                <div className="cf-box">
+                    <div className="cf-label">순 잔액</div>
+                    <div className={`cf-value ${balance >= 0 ? 'positive' : 'negative'}`}>{fmtW(balance)}</div>
+                </div>
+            </div>
+
+            <div className="card">
+                <div className="card-header">
+                    <h3>항목별 출금 현황</h3>
+                </div>
+                <div className="card-body">
+                    {sortedCats.map(([cat, data]) => (
+                        <div key={cat}>
+                            <div className="cf-cat">
+                                <div className="cf-cat-name">{cat}</div>
+                                <div className="cf-cat-amount">{fmtW(data.total)}</div>
+                            </div>
+                            <div className="cf-cat-bar">
+                                <div className="cf-cat-bar-fill" style={{width: ((data.total / expense) * 100) + '%', background: BANK_CATEGORIES[cat]?.color || '#999'}}></div>
+                            </div>
+                        </div>
+                    ))}
+                </div>
+            </div>
+
+            <div className="card">
+                <div className="card-header">
+                    <h3>거래내역</h3>
+                </div>
+                <div className="card-body">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>일자</th>
+                                <th>구분</th>
+                                <th>내용</th>
+                                <th>금액</th>
+                                <th>잔액</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {transactions.map(t => (
+                                <tr key={t.id}>
+                                    <td>{t.date}</td>
+                                    <td><span className={`badge ${t.type === '입금' ? 'badge-green' : 'badge-red'}`}>{t.type}</span></td>
+                                    <td>{t.description}</td>
+                                    <td className={t.type === '입금' ? 'text-secondary' : 'text-danger'}>{fmtW(t.amount)}</td>
+                                    <td>{fmtW(t.balance)}</td>
+                                </tr>
+                            ))}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    );
+}
+
+// ==================== FINANCE PAGE ====================
+function FinancePage({ data, setData }) {
+    const [tab, setTab] = useState('sales');
+    const [showUpload, setShowUpload] = useState(false);
+    const [parsedFile, setParsedFile] = useState(null);
+
+    const handleFileUpload = async (e) => {
+        const file = e.target.files?.[0];
+        if (!file) return;
+        try {
+            const parsed = await parseXlsx(file);
+            setParsedFile(parsed);
+        } catch(err) {
+            alert('파일 파싱 오류: ' + err.message);
+        }
+    };
+
+    const salesInvoices = data.salesInvoices || [];
+    const purchaseInvoices = data.purchaseInvoices || [];
+
+    // 매칭 현황 분석
+    const orders = data.orders || [];
+    const shippedOrders = orders.filter(o => o.status === '출하완료');
+    const unInvoicedOrders = shippedOrders.filter(o => !o.invoiceDate);
+
+    const unmatchedSales = salesInvoices.filter(inv => !inv.bankDeposited);
+    const unmatchedPurchases = purchaseInvoices.filter(inv => !inv.bankWithdrawn);
+
+    return (
+        <div>
+            <h2 style={{fontSize:'20px', fontWeight:'600', marginBottom:'16px'}}>재무회계</h2>
+
+            <div className="tab-bar">
+                <div className={`tab ${tab === 'sales' ? 'active' : ''}`} onClick={() => setTab('sales')}>
+                    <i className="fas fa-file-invoice"></i> 매출 세금계산서
+                </div>
+                <div className={`tab ${tab === 'purchase' ? 'active' : ''}`} onClick={() => setTab('purchase')}>
+                    <i className="fas fa-file-invoice"></i> 매입 세금계산서
+                </div>
+                <div className={`tab ${tab === 'matching' ? 'active' : ''}`} onClick={() => setTab('matching')}>
+                    <i className="fas fa-link"></i> 매칭현황
+                </div>
+            </div>
+
+            {tab === 'sales' && (
+                <div className="card">
+                    <div className="card-header">
+                        <h3>매출 세금계산서</h3>
+                        <button className="btn btn-primary btn-sm" onClick={() => setShowUpload(true)}>
+                            <i className="fas fa-upload"></i> 파일 업로드
+                        </button>
+                    </div>
+                    <div className="card-body">
+                        <table>
+                            <thead>
+                                <tr>
+                                    <th>발행일</th>
+                                    <th>거래처</th>
+                                    <th>금액</th>
+                                    <th>입금 여부</th>
+                                    <th>입금일</th>
+                                    <th>비고</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {salesInvoices.map(inv => (
+                                    <tr key={inv.id}>
+                                        <td>{inv.invoiceDate}</td>
+                                        <td>{inv.vendor}</td>
+                                        <td>{fmtW(inv.amount)}</td>
+                                        <td><span className={`badge ${inv.bankDeposited ? 'badge-green' : 'badge-red'}`}>{inv.bankDeposited ? '입금' : '미입금'}</span></td>
+                                        <td>{inv.depositDate || '-'}</td>
+                                        <td>{inv.notes}</td>
+                                    </tr>
+                                ))}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            )}
+
+            {tab === 'purchase' && (
+                <div className="card">
+                    <div className="card-header">
+                        <h3>매입 세금계산서</h3>
+                        <button className="btn btn-primary btn-sm" onClick={() => setShowUpload(true)}>
+                            <i className="fas fa-upload"></i> 파일 업로드
+                        </button>
+                    </div>
+                    <div className="card-body">
+                        <table>
+                            <thead>
+                                <tr>
+                                    <th>발행일</th>
+                                    <th>거래처</th>
+                                    <th>금액</th>
+                                    <th>출금 여부</th>
+                                    <th>출금일</th>
+                                    <th>비고</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {purchaseInvoices.map(inv => (
+                                    <tr key={inv.id}>
+                                        <td>{inv.invoiceDate}</td>
+                                        <td>{inv.vendor}</td>
+                                        <td>{fmtW(inv.amount)}</td>
+                                        <td><span className={`badge ${inv.bankWithdrawn ? 'badge-green' : 'badge-red'}`}>{inv.bankWithdrawn ? '출금' : '미출금'}</span></td>
+                                        <td>{inv.withdrawalDate || '-'}</td>
+                                        <td>{inv.notes}</td>
+                                    </tr>
+                                ))}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            )}
+
+            {tab === 'matching' && (
+                <div>
+                    <div className="card">
+                        <div className="card-header">
+                            <h3>세금계산서 미발행 내역</h3>
+                        </div>
+                        <div className="card-body">
+                            {unInvoicedOrders.length === 0 ? (
+                                <div className="empty-state">
+                                    <i className="fas fa-check-circle"></i>
+                                    <p>모든 출하건에 세금계산서가 발행되었습니다.</p>
+                                </div>
+                            ) : (
+                                <table>
+                                    <thead>
+                                        <tr>
+                                            <th>출하일</th>
+                                            <th>거래처</th>
+                                            <th>제품</th>
+                                            <th>수량</th>
+                                            <th>상태</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        {unInicedOrders.map(o => (
+                                            <tr key={o.id}>
+                                                <td>{o.shipDate}</td>
+                                                <td>{o.client}</td>
+                                                <td>{o.product}</td>
+                                                <td>{fmt(o.qty)}</td>
+                                                <td><span className="badge badge-red">미발행</span></td>
+                                            </tr>
+                                        ))}
+                                    </tbody>
+                                </table>
+                            )}
+                        </div>
+                    </div>
+
+                    <div className="card">
+                        <div className="card-header">
+                            <h3>미입금 내역</h3>
+                        </div>
+                        <div className="card-body">
+                            {unmatchedSales.length === 0 ? (
+                                <div className="empty-state">
+                                    <i className="fas fa-check-circle"></i>
+                                    <p>모든 매출이 입금되었습니다.</p>
+                                </div>
+                            ) : (
+                                <table>
+                                    <thead>
+                                        <tr>
+                                            <th>발행일</th>
+                                            <th>거래처</th>
+                                            <th>금액</th>
+                                            <th>상태</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        {unmatchedSales.map(inv => (
+                                            <tr key={inv.id}>
+                                                <td>{inv.invoiceDate}</td>
+                                                <td>{inv.vendor}</td>
+                                                <td>{fmtW(inv.amount)}</td>
+                                                <td><span className="badge badge-red">미입금</span></td>
+                                            </tr>
+                                        ))}
+                                    </tbody>
+                                </table>
+                            )}
+                        </div>
+                    </div>
+
+                    <div className="card">
+                        <div className="card-header">
+                            <h3>미출금 내역</h3>
+                        </div>
+                        <div className="card-body">
+                            {unmatchedPurchases.length === 0 ? (
+                                <div className="empty-state">
+                                    <i className="fas fa-check-circle"></i>
+                                    <p>모든 매입이 출금되었습니다.</p>
+                                </div>
+                            ) : (
+                                <table>
+                                    <thead>
+                                        <tr>
+                                            <th>발행일</th>
+                                            <th>거래처</th>
+                                            <th>금액</th>
+                                            <th>상태</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        {unmatchedPurchases.map(inv => (
+                                            <tr key={inv.id}>
+                                                <td>{inv.invoiceDate}</td>
+                                                <td>{inv.vendor}</td>
+                                                <td>{fmtW(inv.amount)}</td>
+                                                <td><span className="badge badge-red">미출금</span></td>
+                                            </tr>
+                                        ))}
+                                    </tbody>
+                                </table>
+                            )}
+                        </div>
+                    </div>
+                </div>
+            )}
+
+            {showUpload && (
+                <div className="modal-overlay" onClick={() => setShowUpload(false)}>
+                    <div className="modal" onClick={(e) => e.stopPropagation()}>
+                        <div className="modal-header">
+                            <h3>세금계산서 업로드</h3>
+                            <button className="btn btn-secondary btn-sm" onClick={() => setShowUpload(false)}>
+                                <i className="fas fa-times"></i>
+                            </button>
+                        </div>
+                        <div className="modal-body">
+                            <div className="upload-zone">
+                                <i className="fas fa-cloud-upload-alt"></i>
+                                <p>파일을 드래그하거나 클릭하여 업로드</p>
+                                <p className="sub">Excel (.xlsx, .xls, .csv)</p>
+                                <input type="file" accept=".xlsx,.xls,.csv" onChange={handleFileUpload} style={{display:'none'}} id="file-input" />
+                                <label htmlFor="file-input" style={{cursor:'pointer', marginTop:'16px'}}>
+                                    <button type="button" className="btn btn-primary btn-sm" onClick={() => document.getElementById('file-input').click()}>
+                                        파일 선택
+                                    </button>
+                                </label>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            )}
+        </div>
+    );
+}
+
+// ==================== STATEMENT PAGE ====================
+function StatementPage({ data, setData }) {
+    const [filter, setFilter] = useState('all');
+    const [selectedStatementId, setSelectedStatementId] = useState(null);
+    const [showCreateModal, setShowCreateModal] = useState(false);
+    const [newStatement, setNewStatement] = useState({ clientId: '', items: [] });
+
+    const shippedOrders = (data.orders || []).filter(o => o.status === '출하완료');
+    const statements = data.statements || [];
+    const clients = data.clients || [];
+
+    const handleCreateStatement = () => {
+        if (!newStatement.clientId) {
+            alert('거래처를 선택해주세요.');
+            return;
+        }
+        const newId = genId(data);
+        const newSt = {
+            id: newId,
+            statementNo: `ST${new Date().toISOString().slice(0,10).replace(/-/g, '')}${String(newId).slice(-3)}`,
+            clientId: parseInt(newStatement.clientId),
+            clientName: clients.find(c => c.id === parseInt(newStatement.clientId))?.name || '',
+            createdDate: new Date().toISOString().slice(0,10),
+            sentDate: '',
+            status: '생성',
+            items: shippedOrders.filter(o => o.client === clients.find(c => c.id === parseInt(newStatement.clientId))?.name).map(o => ({
+                month: new Date(o.shipDate).getMonth() + 1,
+                day: new Date(o.shipDate).getDate(),
+                productName: o.product,
+                spec: '',
+                qty: o.qty,
+                unitPrice: (() => { const p = (data.products||[]).find(p => o.product && (o.product.includes(p.code) || p.code.includes(o.product) || o.product.includes(p.name))); return p ? p.sellPrice : 0; })(),
+                suppliedAmount: (() => { const p = (data.products||[]).find(p => o.product && (o.product.includes(p.code) || p.code.includes(o.product) || o.product.includes(p.name))); return p ? p.sellPrice * o.qty : 0; })(),
+                tax: (() => { const p = (data.products||[]).find(p => o.product && (o.product.includes(p.code) || p.code.includes(o.product) || o.product.includes(p.name))); return p ? Math.round(p.sellPrice * o.qty * 0.1) : 0; })(),
+                orderNo: o.orderNo || '',
+            })) || [],
+        };
+        data.statements.push(newSt);
+        setData({...data});
+        setShowCreateModal(false);
+        setNewStatement({ clientId: '', items: [] });
+    };
+
+    const handlePrint = (stId) => {
+        const st = statements.find(s => s.id === stId);
+        if (!st) return;
+        const client = clients.find(c => c.id === st.clientId) || {};
+        const co = data.company;
+        const items = st.items || [];
+        const totalSupply = items.reduce((s, i) => s + (i.suppliedAmount || 0), 0);
+        const totalTax = items.reduce((s, i) => s + (i.tax || 0), 0);
+        const totalAmount = totalSupply + totalTax;
+        const prevBalance = st.prevBalance || 0;
+        const paidAmt = st.paidAmount || 0;
+        const grandTotal = prevBalance + totalAmount;
+        const remainBal = grandTotal - paidAmt;
+        const stDate = st.createdDate || new Date().toISOString().slice(0,10);
+        const fN = (n) => (n||0).toLocaleString();
+
+        const makeItemRows = () => {
+            let rows = '';
+            const maxRows = 8;
+            for (let i = 0; i < maxRows; i++) {
+                const it = items[i];
+                if (it) {
+                    const mm = String(it.month||'').padStart(2,'0');
+                    const dd = String(it.day||'').padStart(2,'0');
+                    rows += '<tr>' +
+                        '<td style="text-align:center;padding:5px 4px;">' + mm + '-' + dd + '</td>' +
+                        '<td style="padding:5px 4px;">' + (it.productName||'') + '</td>' +
+                        '<td style="text-align:right;padding:5px 4px;">' + fN(it.qty) + '</td>' +
+                        '<td style="text-align:right;padding:5px 4px;">' + fN(it.unitPrice) + '</td>' +
+                        '<td style="text-align:right;padding:5px 4px;">' + fN(it.suppliedAmount) + '</td>' +
+                        '<td style="text-align:right;padding:5px 4px;">' + fN(it.tax) + '</td>' +
+                        '<td style="padding:5px 4px;font-size:10px;">' + (it.orderNo||'') + '</td>' +
+                        '</tr>';
+                } else {
+                    rows += '<tr><td style="padding:5px 4px;">&nbsp;</td><td></td><td></td><td></td><td></td><td></td><td></td></tr>';
+                }
+            }
+            return rows;
+        };
+
+        const makeCopy = (label, borderColor) => {
+            return `
+            <div style="border:3px solid ${borderColor}; padding:0; margin-bottom:30px; page-break-inside:avoid; font-family:'Malgun Gothic','맑은 고딕',sans-serif; font-size:12px; width:100%; box-sizing:border-box;">
+                <div style="text-align:center; padding:12px 0 4px;">
+                    <h2 style="font-size:24px; font-weight:bold; letter-spacing:12px; margin:0; color:${borderColor};">거 래 명 세 표</h2>
+                    <p style="font-size:11px; margin:4px 0 8px; color:#333;">[ &nbsp; ${label} &nbsp; ]</p>
+                </div>
+                <div style="padding:0 12px;">
+                    <table style="width:100%; border-collapse:collapse; margin-bottom:2px;">
+                        <tr>
+                            <td style="width:50%; vertical-align:top; padding-right:8px;">
+                                <table style="width:100%; border-collapse:collapse; font-size:11px;">
+                                    <tr>
+                                        <td style="padding:2px 0;"><b>일 &nbsp;&nbsp;&nbsp; 자</b>: ${stDate}</td>
+                                        <td style="padding:2px 0;"><b>등 록 번 호</b>: ${client.bizNo||''}</td>
+                                    </tr>
+                                    <tr>
+                                        <td colspan="2" style="padding:2px 0;"><b>거 래 처</b>: ${client.name ? (client.name.startsWith('(주)') ? '' : '(주)') + client.name : ''}</td>
+                                    </tr>
+                                    <tr>
+                                        <td colspan="2" style="padding:2px 0;"><b>주 &nbsp;&nbsp;&nbsp; 소</b>: ${client.addr||''}</td>
+                                    </tr>
+                                    <tr>
+                                        <td style="padding:2px 0;"><b>전 화 번 호</b>: ${client.phone||''}</td>
+                                        <td style="padding:2px 0;"><b>팩 스 번 호</b>: ${client.fax||''}</td>
+                                    </tr>
+                                </table>
+                            </td>
+                            <td style="width:50%; vertical-align:top; border-left:1px solid #999; padding-left:8px;">
+                                <table style="width:100%; border-collapse:collapse; font-size:11px;">
+                                    <tr>
+                                        <td style="padding:2px 4px; width:60px;"><b>등록번호</b></td>
+                                        <td style="padding:2px 4px;" colspan="3">${co.bizNo}</td>
+                                    </tr>
+                                    <tr>
+                                        <td style="padding:2px 4px;"><b>상 호</b></td>
+                                        <td style="padding:2px 4px;">${co.name}</td>
+                                        <td style="padding:2px 4px; width:40px;"><b>성명</b></td>
+                                        <td style="padding:2px 4px;">${co.rep} <span style="color:red; font-size:18px;">&#12958;</span></td>
+                                    </tr>
+                                    <tr>
+                                        <td style="padding:2px 4px;"><b>주 소</b></td>
+                                        <td style="padding:2px 4px;" colspan="3">${co.addr}</td>
+                                    </tr>
+                                    <tr>
+                                        <td style="padding:2px 4px;"><b>업태</b></td>
+                                        <td style="padding:2px 4px;">${co.bizType}</td>
+                                        <td style="padding:2px 4px;"><b>종목</b></td>
+                                        <td style="padding:2px 4px;">${co.bizItem}</td>
+                                    </tr>
+                                    <tr>
+                                        <td style="padding:2px 4px;"><b>전화번호</b></td>
+                                        <td style="padding:2px 4px;">${co.phone}</td>
+                                        <td style="padding:2px 4px;"><b>팩스번호</b></td>
+                                        <td style="padding:2px 4px;">${co.fax||''}</td>
+                                    </tr>
+                                </table>
+                            </td>
+                        </tr>
+                    </table>
+                    <div style="border:2px solid #000; padding:6px 12px; margin:6px 0 10px; display:inline-block;">
+                        <b style="font-size:14px;">합계금액 : &nbsp;&nbsp;&nbsp; ${fN(totalAmount)}</b>
+                    </div>
+                    <table style="width:100%; border-collapse:collapse; font-size:11px; border:1px solid #000;">
+                        <thead>
+                            <tr style="background:#f0f0f0;">
+                                <th style="border:1px solid #000; padding:5px; width:60px;">월일</th>
+                                <th style="border:1px solid #000; padding:5px;">품목명/규격</th>
+                                <th style="border:1px solid #000; padding:5px; width:70px;">수량</th>
+                                <th style="border:1px solid #000; padding:5px; width:70px;">단가</th>
+                                <th style="border:1px solid #000; padding:5px; width:90px;">공급가액</th>
+                                <th style="border:1px solid #000; padding:5px; width:80px;">세액</th>
+                                <th style="border:1px solid #000; padding:5px; width:90px;">비고</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            ${makeItemRows()}
+                        </tbody>
+                    </table>
+                    <table style="width:100%; border-collapse:collapse; font-size:11px; border:1px solid #000; border-top:none; margin-bottom:0;">
+                        <tr>
+                            <td style="border:1px solid #000; padding:5px; width:80px; font-weight:bold; background:#f9f9f9;">전미수잔액</td>
+                            <td style="border:1px solid #000; padding:5px; text-align:right; width:130px;">${fN(prevBalance)}</td>
+                            <td style="border:1px solid #000; padding:5px; width:60px; font-weight:bold; background:#f9f9f9;">합계</td>
+                            <td style="border:1px solid #000; padding:5px; text-align:right; width:100px;">${fN(totalSupply)}</td>
+                            <td style="border:1px solid #000; padding:5px; text-align:right; width:90px;">${fN(totalTax)}</td>
+                            <td style="border:1px solid #000; padding:5px;" colspan="2"></td>
+                        </tr>
+                        <tr>
+                            <td style="border:1px solid #000; padding:5px; font-weight:bold; background:#f0f0f0;"><b>총합계</b></td>
+                            <td style="border:1px solid #000; padding:5px; text-align:right; font-weight:bold;">${fN(grandTotal)}</td>
+                            <td style="border:1px solid #000; padding:5px; font-weight:bold; background:#f0f0f0;">입금액</td>
+                            <td style="border:1px solid #000; padding:5px; text-align:right;">${fN(paidAmt)}</td>
+                            <td style="border:1px solid #000; padding:5px; font-weight:bold; background:#f0f0f0;">총미수잔액</td>
+                            <td style="border:1px solid #000; padding:5px; text-align:right; font-weight:bold;">${fN(remainBal)}</td>
+                            <td style="border:1px solid #000; padding:5px; font-weight:bold; background:#f0f0f0; text-align:center;">인수자</td>
+                        </tr>
+                    </table>
+                </div>
+                <div style="height:8px;"></div>
+            </div>`;
+        };
+
+        const printHtml = `<!DOCTYPE html>
+<html><head><meta charset="utf-8"><title>거래명세표 - ${st.statementNo}</title>
+<style>
+    @page { size: A4; margin: 15mm 10mm; }
+    body { font-family:'Malgun Gothic','맑은 고딕',sans-serif; margin:0; padding:0; }
+    @media print { body { -webkit-print-color-adjust: exact; print-color-adjust: exact; } }
+</style></head><body>
+${makeCopy('공급자 보관용', '#0000cc')}
+${makeCopy('공급받는자 보관용', '#cc0000')}
+</body></html>`;
+
+        const w = window.open('', '_blank', 'width=900,height=1200');
+        w.document.write(printHtml);
+        w.document.close();
+        setTimeout(() => w.print(), 500);
+    };
+
+    const handleSent = (stId) => {
+        const st = statements.find(s => s.id === stId);
+        if (st) {
+            st.status = '발송완료';
+            st.sentDate = new Date().toISOString().slice(0,10);
+            setData({...data});
+        }
+    };
+
+    const filteredStatements = filter === 'all' ? statements : statements.filter(s => s.status === filter);
+
+    return (
+        <div>
+            <h2 style={{fontSize:'20px', fontWeight:'600', marginBottom:'16px'}}>거래명세서</h2>
+
+            <div className="card">
+                <div className="card-header">
+                    <h3>거래명세서 목록</h3>
+                    <button className="btn btn-primary btn-sm" onClick={() => setShowCreateModal(true)}>
+                        <i className="fas fa-plus"></i> 신규 생성
+                    </button>
+                </div>
+                <div className="card-body">
+                    <div style={{marginBottom:'16px'}}>
+                        <button className={`btn btn-sm ${filter === 'all' ? 'btn-primary' : 'btn-secondary'}`} onClick={() => setFilter('all')} style={{marginRight:'8px'}}>
+                            전체
+                        </button>
+                        <button className={`btn btn-sm ${filter === '생성' ? 'btn-primary' : 'btn-secondary'}`} onClick={() => setFilter('생성')} style={{marginRight:'8px'}}>
+                            생성
+                        </button>
+                        <button className={`btn btn-sm ${filter === '발송완료' ? 'btn-primary' : 'btn-secondary'}`} onClick={() => setFilter('발송완료')}>
+                            발송완료
+                        </button>
+                    </div>
+
+                    {filteredStatements.length === 0 ? (
+                        <div className="empty-state">
+                            <i className="fas fa-file-alt"></i>
+                            <p>거래명세서가 없습니다.</p>
+                        </div>
+                    ) : (
+                        <table>
+                            <thead>
+                                <tr>
+                                    <th>명세서 번호</th>
+                                    <th>거래처</th>
+                                    <th>생성일</th>
+                                    <th>발송일</th>
+                                    <th>상태</th>
+                                    <th>액션</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {filteredStatements.map(st => (
+                                    <tr key={st.id} onClick={() => setSelectedStatementId(st.id)} style={{cursor:'pointer'}}>
+                                        <td>{st.statementNo}</td>
+                                        <td>{st.clientName}</td>
+                                        <td>{st.createdDate}</td>
+                                        <td>{st.sentDate || '-'}</td>
+                                        <td><span className={`badge ${st.status === '발송완료' ? 'badge-green' : 'badge-blue'}`}>{st.status}</span></td>
+                                        <td>
+                                            <button className="btn btn-sm btn-secondary" onClick={() => handlePrint(st.id)} style={{marginRight:'4px'}}>
+                                                <i className="fas fa-print"></i>
+                                            </button>
+                                            {st.status === '생성' && (
+                                                <button className="btn btn-sm btn-success" onClick={() => handleSent(st.id)}>
+                                                    <i className="fas fa-check"></i>
+                                                </button>
+                                            )}
+                                        </td>
+                                    </tr>
+                                ))}
+                            </tbody>
+                        </table>
+                    )}
+                </div>
+            </div>
+
+            {selectedStatementId && (
+                <div style={{marginTop:'24px'}}>
+                    {statements.filter(s => s.id === selectedStatementId).map(st => {
+                        const stItems = st.items || [];
+                        const tSupply = stItems.reduce((s, i) => s + (i.suppliedAmount || 0), 0);
+                        const tTax = stItems.reduce((s, i) => s + (i.tax || 0), 0);
+                        const tTotal = tSupply + tTax;
+                        const stClient = clients.find(c => c.id === st.clientId) || {};
+                        return (
+                        <div key={st.id} className="card">
+                            <div className="card-header">
+                                <h3>거래명세표 미리보기 - {st.statementNo}</h3>
+                                <div>
+                                    <button className="btn btn-primary btn-sm" onClick={() => handlePrint(st.id)} style={{marginRight:'8px'}}>
+                                        <i className="fas fa-print"></i> 인쇄
+                                    </button>
+                                    <button className="btn btn-secondary btn-sm" onClick={() => setSelectedStatementId(null)}>
+                                        <i className="fas fa-times"></i>
+                                    </button>
+                                </div>
+                            </div>
+                            <div className="card-body">
+                                <div style={{display:'grid', gridTemplateColumns:'1fr 1fr', gap:'16px', marginBottom:'16px', fontSize:'13px'}}>
+                                    <div>
+                                        <div style={{fontWeight:'600', marginBottom:'6px', color:'var(--primary)'}}>공급받는자 (거래처)</div>
+                                        <div>{st.clientName}</div>
+                                        {stClient.bizNo && <div style={{fontSize:'11px', color:'var(--gray)'}}>사업자번호: {stClient.bizNo}</div>}
+                                        {stClient.addr && <div style={{fontSize:'11px', color:'var(--gray)'}}>주소: {stClient.addr}</div>}
+                                    </div>
+                                    <div>
+                                        <div style={{fontWeight:'600', marginBottom:'6px', color:'var(--primary)'}}>공급자</div>
+                                        <div>{data.company.name}</div>
+                                        <div style={{fontSize:'11px', color:'var(--gray)'}}>사업자번호: {data.company.bizNo}</div>
+                                        <div style={{fontSize:'11px', color:'var(--gray)'}}>대표: {data.company.rep}</div>
+                                    </div>
+                                </div>
+                                <div style={{background:'var(--primary-light)', padding:'10px 16px', borderRadius:'8px', marginBottom:'16px', fontSize:'16px', fontWeight:'700'}}>
+                                    합계금액: {fmtW(tTotal)}
+                                </div>
+
+                                <div className="form-row" style={{marginBottom:'12px'}}>
+                                    <div className="form-group">
+                                        <label>전미수잔액</label>
+                                        <input type="number" value={st.prevBalance||0} onChange={(e) => { st.prevBalance = parseInt(e.target.value)||0; setData({...data}); }} />
+                                    </div>
+                                    <div className="form-group">
+                                        <label>입금액</label>
+                                        <input type="number" value={st.paidAmount||0} onChange={(e) => { st.paidAmount = parseInt(e.target.value)||0; setData({...data}); }} />
+                                    </div>
+                                </div>
+
+                                <table>
+                                    <thead>
+                                        <tr>
+                                            <th>월일</th>
+                                            <th>품목명</th>
+                                            <th>수량</th>
+                                            <th>단가</th>
+                                            <th>공급가액</th>
+                                            <th>세액</th>
+                                            <th>비고(PO)</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        {stItems.map((item, idx) => (
+                                            <tr key={idx}>
+                                                <td style={{textAlign:'center'}}>{String(item.month||'').padStart(2,'0')}-{String(item.day||'').padStart(2,'0')}</td>
+                                                <td>{item.productName}</td>
+                                                <td style={{textAlign:'right'}}>{fmt(item.qty)}</td>
+                                                <td style={{textAlign:'right'}}>{fmtW(item.unitPrice)}</td>
+                                                <td style={{textAlign:'right'}}>{fmtW(item.suppliedAmount)}</td>
+                                                <td style={{textAlign:'right'}}>{fmtW(item.tax)}</td>
+                                                <td>{item.orderNo||''}</td>
+                                            </tr>
+                                        ))}
+                                    </tbody>
+                                    <tfoot>
+                                        <tr style={{fontWeight:'600', background:'var(--gray-light)'}}>
+                                            <td colSpan={2}>합계</td>
+                                            <td style={{textAlign:'right'}}>{fmt(stItems.reduce((s,i)=>s+(i.qty||0),0))}</td>
+                                            <td></td>
+                                            <td style={{textAlign:'right'}}>{fmtW(tSupply)}</td>
+                                            <td style={{textAlign:'right'}}>{fmtW(tTax)}</td>
+                                            <td></td>
+                                        </tr>
+                                    </tfoot>
+                                </table>
+                                <div style={{marginTop:'12px', fontSize:'13px', display:'grid', gridTemplateColumns:'repeat(3,1fr)', gap:'8px'}}>
+                                    <div style={{background:'#f9f9f9', padding:'8px', borderRadius:'4px'}}>
+                                        <span style={{color:'var(--gray)'}}>전미수잔액:</span> <b>{fmtW(st.prevBalance||0)}</b>
+                                    </div>
+                                    <div style={{background:'#f9f9f9', padding:'8px', borderRadius:'4px'}}>
+                                        <span style={{color:'var(--gray)'}}>총합계:</span> <b>{fmtW((st.prevBalance||0) + tTotal)}</b>
+                                    </div>
+                                    <div style={{background:'#fff3f3', padding:'8px', borderRadius:'4px'}}>
+                                        <span style={{color:'var(--gray)'}}>총미수잔액:</span> <b style={{color:'var(--danger)'}}>{fmtW((st.prevBalance||0) + tTotal - (st.paidAmount||0))}</b>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        );
+                    })}
+                </div>
+            )}
+
+            {showCreateModal && (
+                <div className="modal-overlay" onClick={() => setShowCreateModal(false)}>
+                    <div className="modal" onClick={(e) => e.stopPropagation()}>
+                        <div className="modal-header">
+                            <h3>거래명세서 생성</h3>
+                            <button className="btn btn-secondary btn-sm" onClick={() => setShowCreateModal(false)}>
+                                <i className="fas fa-times"></i>
+                            </button>
+                        </div>
+                        <div className="modal-body">
+                            <div className="form-group">
+                                <label>거래처 선택</label>
+                                <select value={newStatement.clientId} onChange={(e) => setNewStatement({...newStatement, clientId: e.target.value})}>
+                                    <option value="">선택해주세요</option>
+                                    {clients.filter(c => c.type === '고객사').map(c => (
+                                        <option key={c.id} value={c.id}>{c.name}</option>
+                                    ))}
+                                </select>
+                            </div>
+                        </div>
+                        <div className="modal-footer">
+                            <button className="btn btn-secondary" onClick={() => setShowCreateModal(false)}>취소</button>
+                            <button className="btn btn-primary" onClick={handleCreateStatement}>생성</button>
+                        </div>
+                    </div>
+                </div>
+            )}
+        </div>
+    );
+}
+
+// ==================== INVENTORY PAGE ====================
+function InventoryPage({ data, setData }) {
+    const [categoryFilter, setCategoryFilter] = useState('완제품');
+    const [showModal, setShowModal] = useState(false);
+    const [editItem, setEditItem] = useState(null);
+    const [showBulkInput, setShowBulkInput] = useState(false);
+
+    const inventory = data.inventory || [];
+    const filtered = inventory.filter(i => i.category === categoryFilter);
+
+    const categories = ['완제품', '반제품', '기본부품'];
+
+    const handleSave = (item) => {
+        if (editItem) {
+            const idx = inventory.findIndex(i => i.id === editItem.id);
+            if (idx >= 0) {
+                inventory[idx] = { ...editItem, ...item };
+            }
+        } else {
+            item.id = genId(data);
+            inventory.push(item);
+        }
+        setData({...data});
+        setShowModal(false);
+        setEditItem(null);
+    };
+
+    const handleDelete = (id) => {
+        if (confirm('삭제하시겠습니까?')) {
+            const idx = inventory.findIndex(i => i.id === id);
+            if (idx >= 0) inventory.splice(idx, 1);
+            setData({...data});
+        }
+    };
+
+    return (
+        <div>
+            <h2 style={{fontSize:'20px', fontWeight:'600', marginBottom:'16px'}}>재고관리</h2>
+
+            <div className="category-tabs">
+                {categories.map(cat => (
+                    <button
+                        key={cat}
+                        className={`category-tab ${categoryFilter === cat ? 'active' : ''}`}
+                        onClick={() => setCategoryFilter(cat)}
+                    >
+                        {cat}
+                    </button>
+                ))}
+            </div>
+
+            <div className="card">
+                <div className="card-header">
+                    <h3>{categoryFilter} 재고</h3>
+                    <div style={{display:'flex', gap:'8px'}}>
+                        <button className="btn btn-secondary btn-sm" onClick={() => setShowBulkInput(true)}>
+                            <i className="fas fa-table"></i> 일괄입력
+                        </button>
+                        <button className="btn btn-primary btn-sm" onClick={() => { setEditItem(null); setShowModal(true); }}>
+                            <i className="fas fa-plus"></i> 신규 추가
+                        </button>
+                    </div>
+                </div>
+                <div className="card-body">
+                    {filtered.length === 0 ? (
+                        <div className="empty-state">
+                            <i className="fas fa-inbox"></i>
+                            <p>재고가 없습니다.</p>
+                        </div>
+                    ) : (
+                        <table>
+                            <thead>
+                                <tr>
+                                    <th>제품코드</th>
+                                    <th>제품명</th>
+                                    <th>수량</th>
+                                    <th>위치</th>
+                                    <th>비고</th>
+                                    <th>액션</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {filtered.map(item => (
+                                    <tr key={item.id}>
+                                        <td>{item.code}</td>
+                                        <td>{item.name}</td>
+                                        <td style={{fontWeight:'600'}}>{fmt(item.qty)}</td>
+                                        <td>{item.location}</td>
+                                        <td>{item.notes}</td>
+                                        <td style={{whiteSpace:'nowrap'}}>
+                                            <button className="btn btn-sm btn-secondary" onClick={() => { setEditItem(item); setShowModal(true); }} style={{marginRight:'4px'}}>
+                                                <i className="fas fa-edit"></i>
+                                            </button>
+                                            <button className="btn btn-sm btn-danger" onClick={() => handleDelete(item.id)}>
+                                                <i className="fas fa-trash"></i>
+                                            </button>
+                                        </td>
+                                    </tr>
+                                ))}
+                            </tbody>
+                        </table>
+                    )}
+                </div>
+            </div>
+
+            {showModal && <InventoryModal item={editItem} categories={categories} onSave={handleSave} onClose={() => setShowModal(false)} />}
+            {showBulkInput && <BulkInventoryInput category={categoryFilter} onClose={() => setShowBulkInput(false)} />}
+        </div>
+    );
+}
+
+function InventoryModal({ item, categories, onSave, onClose }) {
+    const [form, setForm] = useState(item || { category:'완제품', code:'', name:'', qty:0, location:'', notes:'' });
+
+    return (
+        <div className="modal-overlay" onClick={onClose}>
+            <div className="modal" onClick={(e) => e.stopPropagation()}>
+                <div className="modal-header">
+                    <h3>{item ? '재고 수정' : '재고 추가'}</h3>
+                    <button className="btn btn-secondary btn-sm" onClick={onClose}>
+                        <i className="fas fa-times"></i>
+                    </button>
+                </div>
+                <div className="modal-body">
+                    <div className="form-group">
+                        <label>분류</label>
+                        <select value={form.category} onChange={(e) => setForm({...form, category: e.target.value})}>
+                            {categories.map(c => <option key={c} value={c}>{c}</option>)}
+                        </select>
+                    </div>
+                    <div className="form-row">
+                        <div className="form-group">
+                            <label>제품/부품코드</label>
+                            <input type="text" value={form.code} onChange={(e) => setForm({...form, code: e.target.value})} placeholder="예: LCDM-1000" />
+                        </div>
+                        <div className="form-group">
+                            <label>제품/부품명</label>
+                            <input type="text" value={form.name} onChange={(e) => setForm({...form, name: e.target.value})} placeholder="제품명" />
+                        </div>
+                    </div>
+                    <div className="form-row">
+                        <div className="form-group">
+                            <label>수량</label>
+                            <input type="number" value={form.qty} onChange={(e) => setForm({...form, qty: parseInt(e.target.value) || 0})} />
+                        </div>
+                        <div className="form-group">
+                            <label>위치</label>
+                            <input type="text" value={form.location} onChange={(e) => setForm({...form, location: e.target.value})} placeholder="예: A-01" />
+                        </div>
+                    </div>
+                    <div className="form-group">
+                        <label>비고</label>
+                        <textarea value={form.notes} onChange={(e) => setForm({...form, notes: e.target.value})} />
+                    </div>
+                </div>
+                <div className="modal-footer">
+                    <button className="btn btn-secondary" onClick={onClose}>취소</button>
+                    <button className="btn btn-primary" onClick={() => onSave(form)}>저장</button>
+                </div>
+            </div>
+        </div>
+    );
+}
+
+function BulkInventoryInput({ category, onClose }) {
+    return (
+        <div className="modal-overlay" onClick={onClose}>
+            <div className="modal" onClick={(e) => e.stopPropagation()}>
+                <div className="modal-header">
+                    <h3>{category} 일괄입력</h3>
+                    <button className="btn btn-secondary btn-sm" onClick={onClose}>
+                        <i className="fas fa-times"></i>
+                    </button>
+                </div>
+                <div className="modal-body">
+                    <p style={{color:'var(--gray)', fontSize:'12px', marginBottom:'16px'}}>
+                        Excel 파일을 업로드하거나 데이터를 붙여넣기로 입력하세요. 필수 항목: 코드, 제품명, 수량, 위치
+                    </p>
+                    <div className="upload-zone">
+                        <i className="fas fa-cloud-upload-alt"></i>
+                        <p>파일을 드래그하거나 클릭하여 업로드</p>
+                        <p className="sub">Excel (.xlsx, .xls, .csv)</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    );
+}
+
+// ==================== MOLD & DRAWING PAGE ====================
+function MoldAndDrawingPage({ data, setData }) {
+    const [tab, setTab] = useState('molds');
+    const [showModal, setShowModal] = useState(false);
+    const [editMold, setEditMold] = useState(null);
+    const [search, setSearch] = useState('');
+
+    const moldsData = data.moldsAndDrawings || {};
+    const molds = moldsData.molds || [];
+    const moldStatus = moldsData.moldStatus || [];
+    const drawings = moldsData.drawings || [];
+
+    const filteredMolds = molds.filter(m => m.name.includes(search) || m.code.includes(search));
+    const filteredDrawings = drawings.filter(d => d.filename.includes(search) || d.relatedProduct.includes(search));
+
+    const handleSaveMold = (mold) => {
+        if (editMold) {
+            const idx = molds.findIndex(m => m.id === editMold.id);
+            if (idx >= 0) molds[idx] = mold;
+        } else {
+            mold.id = genId(data);
+            molds.push(mold);
+        }
+        setData({...data});
+        setShowModal(false);
+        setEditMold(null);
+    };
+
+    const handleDeleteMold = (id) => {
+        if (confirm('삭제하시겠습니까?')) {
+            const idx = molds.findIndex(m => m.id === id);
+            if (idx >= 0) molds.splice(idx, 1);
+            setData({...data});
+        }
+    };
+
+    return (
+        <div>
+            <h2 style={{fontSize:'20px', fontWeight:'600', marginBottom:'16px'}}>금형/도면관리</h2>
+
+            <div className="tab-bar">
+                <div className={`tab ${tab === 'molds' ? 'active' : ''}`} onClick={() => setTab('molds')}>
+                    <i className="fas fa-cube"></i> 금형 현황
+                </div>
+                <div className={`tab ${tab === 'drawings' ? 'active' : ''}`} onClick={() => setTab('drawings')}>
+                    <i className="fas fa-file-alt"></i> 도면 파일
+                </div>
+            </div>
+
+            {tab === 'molds' && (
+                <div>
+                    <div className="card">
+                        <div className="card-header">
+                            <h3>금형 보관 현황</h3>
+                        </div>
+                        <div className="card-body">
+                            <table>
+                                <thead>
+                                    <tr>
+                                        <th>보관처</th>
+                                        <th>금형 개수</th>
+                                        <th>비고</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {moldStatus.map((ms, idx) => (
+                                        <tr key={idx}>
+                                            <td>{ms.location}</td>
+                                            <td style={{fontWeight:'600'}}>{ms.count}개</td>
+                                            <td>{ms.notes}</td>
+                                        </tr>
+                                    ))}
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+
+                    <div className="card">
+                        <div className="card-header">
+                            <h3>금형 목록</h3>
+                            <div style={{display:'flex', gap:'8px'}}>
+                                <input type="text" placeholder="검색..." value={search} onChange={(e) => setSearch(e.target.value)} style={{width:'200px'}} />
+                                <button className="btn btn-primary btn-sm" onClick={() => { setEditMold(null); setShowModal(true); }}>
+                                    <i className="fas fa-plus"></i> 추가
+                                </button>
+                            </div>
+                        </div>
+                        <div className="card-body">
+                            {filteredMolds.length === 0 ? (
+                                <div className="empty-state">
+                                    <i className="fas fa-cube"></i>
+                                    <p>금형이 없습니다.</p>
+                                </div>
+                            ) : (
+                                <table>
+                                    <thead>
+                                        <tr>
+                                            <th>금형명</th>
+                                            <th>금형코드</th>
+                                            <th>재질</th>
+                                            <th>보관처</th>
+                                            <th>상태</th>
+                                            <th>액션</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        {filteredMolds.map(m => (
+                                            <tr key={m.id}>
+                                                <td>{m.name}</td>
+                                                <td>{m.code}</td>
+                                                <td>{m.material}</td>
+                                                <td>{m.location}</td>
+                                                <td><span className={`badge ${m.status === '정상' ? 'badge-green' : 'badge-yellow'}`}>{m.status}</span></td>
+                                                <td>
+                                                    <button className="btn btn-sm btn-secondary" onClick={() => { setEditMold(m); setShowModal(true); }} style={{marginRight:'4px'}}>
+                                                        <i className="fas fa-edit"></i>
+                                                    </button>
+                                                    <button className="btn btn-sm btn-danger" onClick={() => handleDeleteMold(m.id)}>
+                                                        <i className="fas fa-trash"></i>
+                                                    </button>
+                                                </td>
+                                            </tr>
+                                        ))}
+                                    </tbody>
+                                </table>
+                            )}
+                        </div>
+                    </div>
+                </div>
+            )}
+
+            {tab === 'drawings' && (
+                <div className="card">
+                    <div className="card-header">
+                        <h3>도면 파일 목록</h3>
+                        <input type="text" placeholder="검색..." value={search} onChange={(e) => setSearch(e.target.value)} style={{width:'200px'}} />
+                    </div>
+                    <div className="card-body">
+                        {filteredDrawings.length === 0 ? (
+                            <div className="empty-state">
+                                <i className="fas fa-file-alt"></i>
+                                <p>도면이 없습니다.</p>
+                            </div>
+                        ) : (
+                            <table>
+                                <thead>
+                                    <tr>
+                                        <th>파일명</th>
+                                        <th>유형</th>
+                                        <th>관련 제품</th>
+                                        <th>모델</th>
+                                        <th>액션</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {filteredDrawings.map(d => (
+                                        <tr key={d.id}>
+                                            <td>{d.filename}</td>
+                                            <td><span className="badge badge-blue">{d.type}</span></td>
+                                            <td>{d.relatedProduct}</td>
+                                            <td>{d.model}</td>
+                                            <td>
+                                                <button className="btn btn-sm btn-secondary">
+                                                    <i className="fas fa-download"></i> 다운로드
+                                                </button>
+                                            </td>
+                                        </tr>
+                                    ))}
+                                </tbody>
+                            </table>
+                        )}
+                    </div>
+                </div>
+            )}
+
+            {showModal && <MoldModal mold={editMold} onSave={handleSaveMold} onClose={() => setShowModal(false)} />}
+        </div>
+    );
+}
+
+function MoldModal({ mold, onSave, onClose }) {
+    const [form, setForm] = useState(mold || { name:'', code:'', material:'', location:'', status:'정상' });
+
+    return (
+        <div className="modal-overlay" onClick={onClose}>
+            <div className="modal" onClick={(e) => e.stopPropagation()}>
+                <div className="modal-header">
+                    <h3>{mold ? '금형 수정' : '금형 추가'}</h3>
+                    <button className="btn btn-secondary btn-sm" onClick={onClose}>
+                        <i className="fas fa-times"></i>
+                    </button>
+                </div>
+                <div className="modal-body">
+                    <div className="form-group">
+                        <label>금형명</label>
+                        <input type="text" value={form.name} onChange={(e) => setForm({...form, name: e.target.value})} />
+                    </div>
+                    <div className="form-group">
+                        <label>금형코드</label>
+                        <input type="text" value={form.code} onChange={(e) => setForm({...form, code: e.target.value})} />
+                    </div>
+                    <div className="form-group">
+                        <label>재질</label>
+                        <input type="text" value={form.material} onChange={(e) => setForm({...form, material: e.target.value})} />
+                    </div>
+                    <div className="form-group">
+                        <label>보관처</label>
+                        <input type="text" value={form.location} onChange={(e) => setForm({...form, location: e.target.value})} />
+                    </div>
+                    <div className="form-group">
+                        <label>상태</label>
+                        <select value={form.status} onChange={(e) => setForm({...form, status: e.target.value})}>
+                            <option value="정상">정상</option>
+                            <option value="손상">손상</option>
+                            <option value="분실">분실</option>
+                            <option value="이관">이관</option>
+                        </select>
+                    </div>
+                </div>
+                <div className="modal-footer">
+                    <button className="btn btn-secondary" onClick={onClose}>취소</button>
+                    <button className="btn btn-primary" onClick={() => onSave(form)}>저장</button>
+                </div>
+            </div>
+        </div>
+    );
+}
+
+// ==================== ORDERS PAGE ====================
+function OrdersPage({ data, setData }) {
+    const [showModal, setShowModal] = useState(false);
+    const [editOrder, setEditOrder] = useState(null);
+    const [filter, setFilter] = useState('all');
+    const [search, setSearch] = useState('');
+
+    const orders = data.orders || [];
+    const clients = data.clients || [];
+
+    const filtered = orders.filter(o => {
+        if (filter !== 'all' && o.status !== filter) return false;
+        return o.orderNo.includes(search) || o.client.includes(search) || o.product.includes(search);
+    });
+
+    const handleSave = (order) => {
+        if (editOrder) {
+            const idx = orders.findIndex(o => o.id === editOrder.id);
+            if (idx >= 0) orders[idx] = order;
+        } else {
+            order.id = genId(data);
+            orders.push(order);
+        }
+        setData({...data});
+        setShowModal(false);
+        setEditOrder(null);
+    };
+
+    const handleDelete = (id) => {
+        if (confirm('삭제하시겠습니까?')) {
+            const idx = orders.findIndex(o => o.id === id);
+            if (idx >= 0) orders.splice(idx, 1);
+            setData({...data});
+        }
+    };
+
+    return (
+        <div>
+            <h2 style={{fontSize:'20px', fontWeight:'600', marginBottom:'16px'}}>발주확인/처리</h2>
+
+            <div className="card">
+                <div className="card-header">
+                    <div style={{display:'flex', gap:'8px', alignItems:'center', flex:'1'}}>
+                        <input type="text" placeholder="발주번호, 업체, 제품명..." value={search} onChange={(e) => setSearch(e.target.value)} style={{maxWidth:'300px'}} />
+                    </div>
+                    <button className="btn btn-primary btn-sm" onClick={() => { setEditOrder(null); setShowModal(true); }}>
+                        <i className="fas fa-plus"></i> 신규 발주
+                    </button>
+                </div>
+                <div className="card-body">
+                    <div style={{marginBottom:'16px', display:'flex', gap:'8px'}}>
+                        {['all', '대기', '진행중', '납기초과', '출하완료'].map(s => (
+                            <button key={s} className={`btn btn-sm ${filter === s ? 'btn-primary' : 'btn-secondary'}`} onClick={() => setFilter(s)}>
+                                {s === 'all' ? '전체' : s}
+                            </button>
+                        ))}
+                    </div>
+
+                    {filtered.length === 0 ? (
+                        <div className="empty-state">
+                            <i className="fas fa-inbox"></i>
+                            <p>발주 내역이 없습니다.</p>
+                        </div>
+                    ) : (
+                        <table>
+                            <thead>
+                                <tr>
+                                    <th>발주일</th>
+                                    <th>발주번호</th>
+                                    <th>업체</th>
+                                    <th>제품</th>
+                                    <th>수량</th>
+                                    <th>납기일</th>
+                                    <th>출하일</th>
+                                    <th>상태</th>
+                                    <th>액션</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {filtered.map(o => (
+                                    <tr key={o.id}>
+                                        <td>{fmtDate(o.orderDate)}</td>
+                                        <td>{o.orderNo}</td>
+                                        <td>{o.client}</td>
+                                        <td>{o.product}</td>
+                                        <td>{fmt(o.qty)}</td>
+                                        <td>{fmtDate(o.dueDate)}</td>
+                                        <td>{fmtDate(o.shipDate)}</td>
+                                        <td>
+                                            <span className={`badge ${
+                                                o.status === '출하완료' ? 'badge-green' :
+                                                o.status === '납기초과' ? 'badge-red' :
+                                                o.status === '진행중' ? 'badge-blue' : 'badge-gray'
+                                            }`}>{o.status}</span>
+                                        </td>
+                                        <td style={{whiteSpace:'nowrap'}}>
+                                            <button className="btn btn-sm btn-secondary" onClick={() => { setEditOrder(o); setShowModal(true); }} style={{marginRight:'4px'}}>
+                                                <i className="fas fa-edit"></i>
+                                            </button>
+                                            <button className="btn btn-sm btn-danger" onClick={() => handleDelete(o.id)}>
+                                                <i className="fas fa-trash"></i>
+                                            </button>
+                                        </td>
+                                    </tr>
+                                ))}
+                            </tbody>
+                        </table>
+                    )}
+                </div>
+            </div>
+
+            {showModal && <OrderModal order={editOrder} clients={clients} onSave={handleSave} onClose={() => setShowModal(false)} />}
+        </div>
+    );
+}
+
+function OrderModal({ order, clients, onSave, onClose }) {
+    const [form, setForm] = useState(order || {
+        orderDate: new Date().toISOString().slice(0,10),
+        dueDate: '',
+        shipDate: '',
+        client: '',
+        orderNo: '',
+        clientProduct: '',
+        product: '',
+        qty: 0,
+        lotNo: '',
+        invoiceDate: '',
+        notes: '',
+        status: '대기',
+        trackingNo: '',
+    });
+
+    return (
+        <div className="modal-overlay" onClick={onClose}>
+            <div className="modal" onClick={(e) => e.stopPropagation()}>
+                <div className="modal-header">
+                    <h3>{order ? '발주 수정' : '발주 신규 추가'}</h3>
+                    <button className="btn btn-secondary btn-sm" onClick={onClose}>
+                        <i className="fas fa-times"></i>
+                    </button>
+                </div>
+                <div className="modal-body">
+                    <div className="form-row">
+                        <div className="form-group">
+                            <label>발주일</label>
+                            <input type="date" value={form.orderDate} onChange={(e) => setForm({...form, orderDate: e.target.value})} />
+                        </div>
+                        <div className="form-group">
+                            <label>납기일</label>
+                            <input type="date" value={form.dueDate} onChange={(e) => setForm({...form, dueDate: e.target.value})} />
+                        </div>
+                    </div>
+                    <div className="form-row">
+                        <div className="form-group">
+                            <label>출하일</label>
+                            <input type="date" value={form.shipDate} onChange={(e) => setForm({...form, shipDate: e.target.value})} />
+                        </div>
+                        <div className="form-group">
+                            <label>송장번호</label>
+                            <input type="text" value={form.trackingNo} onChange={(e) => setForm({...form, trackingNo: e.target.value})} />
+                        </div>
+                    </div>
+                    <div className="form-row">
+                        <div className="form-group">
+                            <label>업체</label>
+                            <select value={form.client} onChange={(e) => setForm({...form, client: e.target.value})}>
+                                <option value="">선택해주세요</option>
+                                {clients.filter(c => c.type === '고객사').map(c => (
+                                    <option key={c.id} value={c.name}>{c.name}</option>
+                                ))}
+                            </select>
+                        </div>
+                        <div className="form-group">
+                            <label>발주번호</label>
+                            <input type="text" value={form.orderNo} onChange={(e) => setForm({...form, orderNo: e.target.value})} />
+                        </div>
+                    </div>
+                    <div className="form-group">
+                        <label>업체 품명</label>
+                        <input type="text" value={form.clientProduct} onChange={(e) => setForm({...form, clientProduct: e.target.value})} />
+                    </div>
+                    <div className="form-row">
+                        <div className="form-group">
+                            <label>엘맥스텍 품명</label>
+                            <input type="text" value={form.product} onChange={(e) => setForm({...form, product: e.target.value})} />
+                        </div>
+                        <div className="form-group">
+                            <label>발주수량</label>
+                            <input type="number" value={form.qty} onChange={(e) => setForm({...form, qty: parseInt(e.target.value) || 0})} />
+                        </div>
+                    </div>
+                    <div className="form-row">
+                        <div className="form-group">
+                            <label>로트번호</label>
+                            <input type="text" value={form.lotNo} onChange={(e) => setForm({...form, lotNo: e.target.value})} />
+                        </div>
+                        <div className="form-group">
+                            <label>세금계산서 발행일자</label>
+                            <input type="date" value={form.invoiceDate} onChange={(e) => setForm({...form, invoiceDate: e.target.value})} />
+                        </div>
+                    </div>
+                    <div className="form-group">
+                        <label>상태</label>
+                        <select value={form.status} onChange={(e) => setForm({...form, status: e.target.value})}>
+                            <option value="대기">대기</option>
+                            <option value="진행중">진행중</option>
+                            <option value="납기초과">납기초과</option>
+                            <option value="출하완료">출하완료</option>
+                        </select>
+                    </div>
+                    <div className="form-group">
+                        <label>비고</label>
+                        <textarea value={form.notes} onChange={(e) => setForm({...form, notes: e.target.value})} />
+                    </div>
+                </div>
+                <div className="modal-footer">
+                    <button className="btn btn-secondary" onClick={onClose}>취소</button>
+                    <button className="btn btn-primary" onClick={() => onSave(form)}>저장</button>
+                </div>
+            </div>
+        </div>
+    );
+}
+
+// ==================== MAIN APP ====================
+function App() {
+    const [user, setUser] = useState(null);
+    const [data, setData] = useState(getInitialData);
+    const [page, setPage] = useState('dashboard');
+    const [toast, setToast] = useState(null);
+
+    useEffect(() => {
+        const timer = setInterval(() => localStorage.setItem(STORAGE_KEY, JSON.stringify(data)), 3000);
+        return () => clearInterval(timer);
+    }, [data]);
+
+    const handleLogout = () => {
+        if (confirm('로그아웃하시겠습니까?')) {
+            setUser(null);
+            setPage('dashboard');
+        }
+    };
+
+    if (!user) return <LoginPage onLogin={setUser} />;
+
+    const menuItems = [
+        { id: 'dashboard', label: '대시보드', icon: 'fa-chart-line', adminOnly: true },
+        { id: 'cashflow', label: '현금흐름', icon: 'fa-water', adminOnly: true },
+        { id: 'finance', label: '재무회계', icon: 'fa-calculator', adminOnly: true },
+        { id: 'orders', label: '발주확인/처리', icon: 'fa-boxes' },
+        { id: 'workorder', label: '업무지시서', icon: 'fa-tasks' },
+        { id: 'statement', label: '거래명세서', icon: 'fa-file-alt' },
+        null,
+        { id: 'inventory', label: '재고관리', icon: 'fa-warehouse' },
+        { id: 'clients', label: '거래처관리', icon: 'fa-building' },
+        { id: 'products', label: '제품관리', icon: 'fa-cubes' },
+        { id: 'molds', label: '금형/도면관리', icon: 'fa-cube' },
+    ];
+
+    return (
+        <div>
+            <div className="sidebar">
+                <div className="sidebar-header">
+                    <div className="sidebar-header-info">
+                        <h2>엘맥스텍</h2>
+                        <p>행정업무 대시보드</p>
+                    </div>
+                </div>
+
+                {menuItems.map((item, idx) => {
+                    if (!item) return <div key={`section-${idx}`} className="nav-section">기본관리</div>;
+                    const canAccess = !item.adminOnly || user.role === 'admin';
+                    const isDisabled = !canAccess;
+                    return (
+                        <div
+                            key={item.id}
+                            className={`nav-item ${page === item.id ? 'active' : ''} ${isDisabled ? 'disabled' : ''}`}
+                            onClick={() => { if (canAccess) setPage(item.id); }}
+                        >
+                            <i className={`fas ${item.icon}`}></i>
+                            <span>{item.label}</span>
+                        </div>
+                    );
+                })}
+            </div>
+
+            <div className="main">
+                <div className="topbar">
+                    <h1>{menuItems.find(m => m && m.id === page)?.label || '대시보드'}</h1>
+                    <div className="topbar-right">
+                        <div className="topbar-date">{new Date().toLocaleDateString('ko-KR')}</div>
+                        <div className="topbar-user">
+                            <i className="fas fa-user-circle"></i>
+                            <span>{user.name}</span>
+                        </div>
+                        <button className="btn btn-secondary btn-sm" onClick={handleLogout}>
+                            <i className="fas fa-sign-out-alt"></i> 로그아웃
+                        </button>
+                    </div>
+                </div>
+
+                <div className="content">
+                    {page === 'dashboard' && <DashboardPage data={data} setPage={setPage} />}
+                    {page === 'cashflow' && <CashflowPage data={data} />}
+                    {page === 'finance' && <FinancePage data={data} setData={setData} />}
+                    {page === 'orders' && <OrdersPage data={data} setData={setData} />}
+                    {page === 'statement' && <StatementPage data={data} setData={setData} />}
+                    {page === 'inventory' && <InventoryPage data={data} setData={setData} />}
+                    {page === 'molds' && <MoldAndDrawingPage data={data} setData={setData} />}
+                    {page === 'workorder' && (
+                        <div className="card">
+                            <div className="card-header"><h3>업무지시서</h3></div>
+                            <div className="card-body">
+                                <div className="empty-state">
+                                    <i className="fas fa-tasks"></i>
+                                    <p>업무지시서 기능이 준비 중입니다.</p>
+                                </div>
+                            </div>
+                        </div>
+                    )}
+                    {page === 'clients' && (
+                        <div className="card">
+                            <div className="card-header"><h3>거래처관리</h3></div>
+                            <div className="card-body">
+                                <table>
+                                    <thead>
+                                        <tr>
+                                            <th>거래처명</th>
+                                            <th>사업자번호</th>
+                                            <th>담당자</th>
+                                            <th>유형</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        {(data.clients || []).map(c => (
+                                            <tr key={c.id}>
+                                                <td>{c.name}</td>
+                                                <td>{c.bizNo}</td>
+                                                <td>{c.rep}</td>
+                                                <td><span className={`badge ${c.type === '고객사' ? 'badge-blue' : c.type === '공급사' ? 'badge-green' : 'badge-gray'}`}>{c.type}</span></td>
+                                            </tr>
+                                        ))}
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    )}
+                    {page === 'products' && (
+                        <div className="card">
+                            <div className="card-header"><h3>제품관리</h3></div>
+                            <div className="card-body">
+                                <table>
+                                    <thead>
+                                        <tr>
+                                            <th>제품코드</th>
+                                            <th>제품명</th>
+                                            <th>원가</th>
+                                            <th>판매가</th>
+                                            <th>단위</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        {(data.products || []).map(p => (
+                                            <tr key={p.id}>
+                                                <td>{p.code}</td>
+                                                <td>{p.name}</td>
+                                                <td>{fmtW(p.costPrice)}</td>
+                                                <td>{fmtW(p.sellPrice)}</td>
+                                                <td>{p.unit}</td>
+                                            </tr>
+                                        ))}
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    )}
+                </div>
+            </div>
+
+            {toast && (
+                <div className="toast">{toast}</div>
+            )}
+        </div>
+    );
+}
+
+ReactDOM.render(<App />, document.getElementById('root'));
+</script>
+</body>
+</html>
